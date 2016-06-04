@@ -2,10 +2,18 @@
 #include "UserBST.h"
 #include "WordBST.h"
 
+bool isNum(char * chr) {
+	for (; *chr; chr++) {
+		if (*chr < '0' || *chr > '9') {
+			return false;
+		}
+	}
+	return true;
+}
 int count;
 int main() {
 	int command, inputReady = 0;
-	UserBST users, usersF, userTC;
+	UserBST users, usersF, usersTC;
 	WordBST words, wordsF;
 	char tmp1[1000], tmp2[1000];
 	UserBSTInit(&users);
@@ -23,7 +31,14 @@ int main() {
 		printf("9. Find shortest path from a given uesr\n");
 		printf("99. Quit\n");
 		printf("Select Menu : ");
-		scanf("%d", &command);
+		scanf("%s", &tmp2);
+		if (!isNum(tmp2)) {
+			printf("숫자를 입력해주세요.\n");
+			continue;
+		}
+		else {
+			command = atoi(tmp2);
+		}
 		if (inputReady == 0 && command != 0) {
 			printf("입력을 먼저 받아주세요.\n");
 			continue;
@@ -74,23 +89,27 @@ int main() {
 		}
 		case 1:
 			usersF = constructUserFTree(users);
-			userTC = constructUserTCTree(users);
+			usersTC = constructUserTCTree(users);
 			printf("Average number of friends : %d\n", users.totalFriend / users.totalUesr);
 			printf("Minimum number of friends : %d %s\n", findMinUser(usersF.root)->friends, findMinUser(usersF.root)->ID);
 			printf("Maximum number of friends : %d %s\n\n", findMaxUser(usersF.root)->friends, findMaxUser(usersF.root)->ID);
 			printf("Average tweets per user : %d\n", words.totalTweet / users.totalUesr);
-			printf("Minimum tweets per uesr : %d %s\n", findMinUser(userTC.root)->tweetc, findMinUser(userTC.root)->ID);
-			printf("Maximum tweets per user : %d %s\n", findMaxUser(userTC.root)->tweetc, findMaxUser(userTC.root)->ID);
+			printf("Minimum tweets per uesr : %d %s\n", findMinUser(usersTC.root)->tweetc, findMinUser(usersTC.root)->ID);
+			printf("Maximum tweets per user : %d %s\n", findMaxUser(usersTC.root)->tweetc, findMaxUser(usersTC.root)->ID);
+			//printf("userF Tree Height = %d\n", userTreeHeight(usersF.root));
+			//printf("usersTC Tree Height = %d\n", userTreeHeight(usersTC.root));
 			break;
 		case 2:
 			wordsF = constructWordFTree(words);
+			//printf("wordsF Tree Height : %d\n", wordTreeHeight(wordsF.root));
+			//printWord(wordsF.root);
 			count = 1;
 			printTopFiveWord(wordsF.root);
 			break;
 		case 3:
-			userTC = constructUserTCTree(users);
+			usersTC = constructUserTCTree(users);
 			count = 1;
-			printTopFiveUser(userTC.root);
+			printTopFiveUser(usersTC.root);
 			break;
 		case 99:
 			return 0;

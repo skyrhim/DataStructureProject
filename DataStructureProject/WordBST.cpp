@@ -156,6 +156,7 @@ void insertWordF(WordBST *bst, Word *word) {
 		if (parent->userCount > tmp->userCount) {
 			if (!parent->left) {
 				parent->left = tmp;
+				tmp->parent = parent;
 				break;
 			}
 			else {
@@ -165,6 +166,7 @@ void insertWordF(WordBST *bst, Word *word) {
 		else {
 			if (!parent->right) {
 				parent->right = tmp;
+				tmp->parent = parent;
 				break;
 			}
 			else {
