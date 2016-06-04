@@ -13,6 +13,7 @@ struct Word {
 	Word* parent;
 	Word* left;
 	Word* right;
+	int color;
 };
 struct WordBST {
 	int height;
@@ -29,3 +30,7 @@ void WordBSTInit(WordBST*);
 void printWord(Word*);
 void insertWordF(WordBST *bst, Word *word);
 WordBST constructWordFTree(WordBST);
+void printTopFiveWord(Word*);
+void WordinsertFixUp(WordBST*, Word*);
+void WordleftRotate(WordBST*, Word*);
+void WordrightRotate(WordBST*, Word*);

@@ -2,6 +2,7 @@
 #include "UserBST.h"
 #include "WordBST.h"
 
+int count;
 int main() {
 	int command, inputReady = 0;
 	UserBST users, usersF, userTC;
@@ -64,6 +65,7 @@ int main() {
 			printf("total user : %d\n", users.totalUesr);
 			printf("total friendship record : %d\n", users.totalFriend);
 			printf("total tweets : %d\n", words.totalTweet);
+			//
 			//printf("user tree height : %d\n", userTreeHeight(users.root));
 			//printf("word tree height : %d\n", wordTreeHeight(words.root));
 			//print(users.root);
@@ -72,7 +74,6 @@ int main() {
 		}
 		case 1:
 			usersF = constructUserFTree(users);
-			//wordsF = constructWordFTree(words);
 			userTC = constructUserTCTree(users);
 			printf("Average number of friends : %d\n", users.totalFriend / users.totalUesr);
 			printf("Minimum number of friends : %d %s\n", findMinUser(usersF.root)->friends, findMinUser(usersF.root)->ID);
@@ -80,6 +81,16 @@ int main() {
 			printf("Average tweets per user : %d\n", words.totalTweet / users.totalUesr);
 			printf("Minimum tweets per uesr : %d %s\n", findMinUser(userTC.root)->tweetc, findMinUser(userTC.root)->ID);
 			printf("Maximum tweets per user : %d %s\n", findMaxUser(userTC.root)->tweetc, findMaxUser(userTC.root)->ID);
+			break;
+		case 2:
+			wordsF = constructWordFTree(words);
+			count = 1;
+			printTopFiveWord(wordsF.root);
+			break;
+		case 3:
+			userTC = constructUserTCTree(users);
+			count = 1;
+			printTopFiveUser(userTC.root);
 			break;
 		case 99:
 			return 0;

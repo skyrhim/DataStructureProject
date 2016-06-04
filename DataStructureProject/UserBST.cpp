@@ -1,5 +1,7 @@
 #include "UserBST.h"
 
+extern int count;
+//Tree에서 ID를 찾아 그곳에 friendId 추가
 void insertFriend(UserBST* userBST, char* ID, char* friendId) {
 	User* root = userBST->root;
 	while (1) {
@@ -31,6 +33,7 @@ void insertFriend(UserBST* userBST, char* ID, char* friendId) {
 		}
 	}
 }
+//User삽입 테스트용
 void print(User* root) {
 	if (root->left != NULL) {
 		print(root->left);
@@ -47,6 +50,7 @@ void UserBSTInit(UserBST* users) {
 	users->totalFriend = 0;
 	users->totalUesr = 0;
 }
+//UserTree의 높이 계산
 int userTreeHeight(User* root) {
 	if (root == NULL) return 0;
 	return max(userTreeHeight(root->left) + 1, userTreeHeight(root->right));
@@ -92,10 +96,11 @@ void transPlant(UserBST* bst, User* target, User* newUser) {
 void insertUser(UserBST* bst, char* ID) {
 	User* tmp = (User*)malloc(sizeof(User));
 	tmp->left = NULL; tmp->right = NULL; tmp->parent = NULL; memcpy(tmp->ID, ID, 30);
-	tmp->first = NULL; tmp->friends = 0; tmp->tweetc = 0;
+	tmp->first = NULL; tmp->friends = 0; tmp->tweetc = 0;  tmp->color = 1;
 	bst->totalUesr++;
 	if (bst->root == NULL) {
 		bst->root = tmp;
+		tmp->color = 0;
 		return;
 	}
 	User* parent = bst->root;
@@ -104,7 +109,7 @@ void insertUser(UserBST* bst, char* ID) {
 			if (parent->left == NULL) {
 				tmp->parent = parent;
 				parent->left = tmp;
-				return;
+				break;
 			}
 			parent = parent->left;
 		}
@@ -112,11 +117,12 @@ void insertUser(UserBST* bst, char* ID) {
 			if (parent->right == NULL) {
 				tmp->parent = parent;
 				parent->right = tmp;
-				return;
+				break;
 			}
 			parent = parent->right;
 		}
 	}
+	UserinsertFixUp(bst, tmp);
 }
 //노드 삭제
 void deleteUser(UserBST* bst, User* deleteUser) {
@@ -149,12 +155,14 @@ void deleteUser(UserBST* bst, User* deleteUser) {
 	}
 	free(deleteUser);
 }
+//User를 친구의 수를 기준으로 트리에 삽입
 void insertUserF(UserBST* bst, User* user) {
 	User* tmp = (User*)malloc(sizeof(User));
 	tmp->left = NULL; tmp->right = NULL; tmp->friends = user->friends;
-	memcpy(tmp->ID, user->ID, 30);
+	memcpy(tmp->ID, user->ID, 30); tmp->color = 1; tmp->parent = NULL;
 	if (bst->root == NULL) {
 		bst->root = tmp;
+		tmp->color = 0;
 		return;
 	}
 	User* parent = bst->root;
@@ -163,7 +171,7 @@ void insertUserF(UserBST* bst, User* user) {
 			if (parent->left == NULL) {
 				tmp->parent = parent;
 				parent->left = tmp;
-				return;
+				break;
 			}
 			parent = parent->left;
 		}
@@ -171,13 +179,14 @@ void insertUserF(UserBST* bst, User* user) {
 			if (parent->right == NULL) {
 				tmp->parent = parent;
 				parent->right = tmp;
-				return;
+				break;
 			}
 			parent = parent->right;
 		}
 	}
+	UserinsertFixUp(bst, tmp);
 }
-
+//친구의 수를 기준으로 한 Tree구성
 UserBST constructUserFTree(UserBST target) {
 	UserBST bst;
 	UserBSTInit(&bst);
@@ -201,7 +210,7 @@ UserBST constructUserFTree(UserBST target) {
 	free(UserQueue);
 	return bst;
 }
-
+//User가 트윗을 했을 때 그 정보를 기록
 void userTweet(User* root, char* id) {
 	int compare;
 	while (1) {
@@ -217,13 +226,14 @@ void userTweet(User* root, char* id) {
 		}
 	}
 }
-
+//User를 트윗수 기준으로 트리에 삽입
 void insertUserTC(UserBST* bst, User* user) {
 	User* tmp = (User*)malloc(sizeof(User));
 	tmp->left = NULL; tmp->right = NULL; tmp->tweetc = user->tweetc;
-	memcpy(tmp->ID, user->ID, 30);
+	memcpy(tmp->ID, user->ID, 30); tmp->color = 1; tmp->parent = NULL;
 	if (bst->root == NULL) {
 		bst->root = tmp;
+		tmp->color = 0;
 		return;
 	}
 	User* parent = bst->root;
@@ -232,7 +242,7 @@ void insertUserTC(UserBST* bst, User* user) {
 			if (parent->left == NULL) {
 				tmp->parent = parent;
 				parent->left = tmp;
-				return;
+				break;
 			}
 			parent = parent->left;
 		}
@@ -240,13 +250,14 @@ void insertUserTC(UserBST* bst, User* user) {
 			if (parent->right == NULL) {
 				tmp->parent = parent;
 				parent->right = tmp;
-				return;
+				break;
 			}
 			parent = parent->right;
 		}
 	}
+	UserinsertFixUp(bst, tmp);
 }
-
+//User를 트윗수 기준으로 Tree를 만들 때
 UserBST constructUserTCTree(UserBST target) {
 	UserBST bst;
 	UserBSTInit(&bst);
@@ -269,4 +280,105 @@ UserBST constructUserTCTree(UserBST target) {
 	}
 	free(UserQueue);
 	return bst;
+}
+void printTopFiveUser(User* root) {
+	if (root->right != NULL) {
+		printTopFiveUser(root->right);
+	}
+	if (count == 6) {
+		return;
+	}
+	printf("Top %d : %s %d회\n", count, root->ID, root->tweetc);
+	count++;
+	if (root->left != NULL) {
+		printTopFiveUser(root->left);
+	}
+}
+
+void UserinsertFixUp(UserBST* bst, User* fix) {
+	while (fix->parent && fix->parent->color) {
+		if (fix->parent == fix->parent->parent->left) {
+			User* uncle = fix->parent->parent->right;
+			if (uncle && uncle->color) {
+				fix->parent->color = 0;
+				uncle->color = 0;
+				if (fix->parent->parent) {
+					fix->parent->parent->color = 1;
+				}
+				fix = fix->parent->parent;
+			}
+			else {
+				if (fix == fix->parent->right) {
+					fix = fix->parent;
+					UserleftRotate(bst, fix);
+				}
+				fix->parent->color = 0;
+				if (fix->parent->parent) {
+					fix->parent->parent->color = 1;
+				}
+				UserrightRotate(bst, fix->parent->parent);
+			}
+		}
+		else {
+			User* uncle = fix->parent->parent->left;
+			if (uncle && uncle->color) {
+				fix->parent->color = 0;
+				uncle->color = 0;
+				fix->parent->parent->color = 1;
+				fix = fix->parent->parent;
+			}
+			else {
+				if (fix == fix->parent->left) {
+					fix = fix->parent;
+					UserrightRotate(bst, fix);
+				}
+				fix->parent->color = 0;
+				if (fix->parent->parent) {
+					fix->parent->parent->color = 1;
+				}
+				UserleftRotate(bst, fix->parent->parent);
+			}
+		}
+	}
+	bst->root->color = 0;
+}
+
+void UserleftRotate(UserBST* bst, User* fix) {
+	User* tmp = fix->right;
+	fix->right = tmp->left;
+	if (tmp->left) {
+		tmp->left->parent = fix;
+	}
+	tmp->parent = fix->parent;
+	if (fix->parent == NULL) {
+		bst->root = tmp;
+	}
+	else if (fix == fix->parent->left) {
+		fix->parent->left = tmp;
+	}
+	else {
+		fix->parent->right = tmp;
+	}
+	tmp->left = fix;
+	fix->parent = tmp;
+}
+
+void UserrightRotate(UserBST* bst, User* fix) {
+	User* tmp = fix->left;
+	fix->left = tmp->right;
+	if (tmp->right) {
+		tmp->right->parent = fix;
+	}
+	tmp->parent = fix->parent;
+	if (fix->parent == NULL) {
+		bst->root = tmp;
+	}
+	else if (fix == fix->parent->left) {
+		fix->parent->left = tmp;
+	}
+	else {
+		fix->parent->right = tmp;
+	}
+	tmp->right = fix;
+	fix->parent = tmp;
 }

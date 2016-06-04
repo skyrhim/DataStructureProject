@@ -1,5 +1,6 @@
 #include "WordBST.h"
 
+extern int count;
 void printWord(Word* root) {
 	if (root->left != NULL) {
 		printWord(root->left);
@@ -59,11 +60,12 @@ void transPlant(WordBST* bst, Word* target, Word* newWord) {
 //노드 삽입;
 void insertWord(WordBST* bst, char* tweet, char* tweetID) {
 	Word* tmp = (Word*)malloc(sizeof(Word));
-	tmp->userCount = 1; tmp->first = NULL;
+	tmp->userCount = 1; tmp->first = NULL; tmp->color = 1;
 	tmp->left = NULL; tmp->right = NULL; tmp->parent = NULL; memcpy(tmp->tweet, tweet, 200);
 	bst->totalTweet++;
 	if (bst->root == NULL) {
 		bst->root = tmp;
+		bst->root->color = 0;
 		return;
 	}
 	Word* parent = bst->root;
@@ -76,7 +78,7 @@ void insertWord(WordBST* bst, char* tweet, char* tweetID) {
 				tmp->first = temp;
 				tmp->parent = parent;
 				parent->left = tmp;
-				return;
+				break;
 			}
 			parent = parent->left;
 		}
@@ -88,7 +90,7 @@ void insertWord(WordBST* bst, char* tweet, char* tweetID) {
 				tmp->first = temp;
 				tmp->parent = parent;
 				parent->right = tmp;
-				return;
+				break;
 			}
 			parent = parent->right;
 		}
@@ -106,6 +108,7 @@ void insertWord(WordBST* bst, char* tweet, char* tweetID) {
 			return;
 		}
 	}
+	WordinsertFixUp(bst, tmp);
 }
 //노드 삭제
 void deleteWord(WordBST* bst, Word* deleteWord) {
@@ -141,9 +144,11 @@ void deleteWord(WordBST* bst, Word* deleteWord) {
 
 void insertWordF(WordBST *bst, Word *word) {
 	Word *tmp = (Word*)malloc(sizeof(Word));
-	tmp->left = NULL; tmp->right = NULL; tmp->userCount = word->userCount;
+	tmp->left = NULL; tmp->right = NULL; tmp->userCount = word->userCount; tmp->parent = NULL;
+	memcpy(tmp->tweet, word->tweet, 200); tmp->color = 1;
 	if (!bst->root) {
 		bst->root = tmp;
+		bst->root->color = 0;
 		return;
 	}
 	Word *parent = bst->root;
@@ -151,7 +156,7 @@ void insertWordF(WordBST *bst, Word *word) {
 		if (parent->userCount > tmp->userCount) {
 			if (!parent->left) {
 				parent->left = tmp;
-				return;
+				break;
 			}
 			else {
 				parent = parent->left;
@@ -160,13 +165,14 @@ void insertWordF(WordBST *bst, Word *word) {
 		else {
 			if (!parent->right) {
 				parent->right = tmp;
-				return;
+				break;
 			}
 			else {
 				parent = parent->right;
 			}
 		}
 	}
+	WordinsertFixUp(bst, tmp);
 }
 
 WordBST constructWordFTree(WordBST target) {
@@ -191,4 +197,106 @@ WordBST constructWordFTree(WordBST target) {
 	}
 	free(WordQueue);
 	return bst;
+}
+
+void printTopFiveWord(Word* root) {
+	if (root->right != NULL) {
+		printTopFiveWord(root->right);
+	}
+	if (count == 6) {
+		return;
+	}
+	printf("Top %d : %s %d회\n", count, root->tweet, root->userCount);
+	count++;
+	if (root->left != NULL) {
+		printTopFiveWord(root->left);
+	}
+}
+
+void WordinsertFixUp(WordBST* bst, Word* fix) {
+	while (fix->parent && fix->parent->color) {
+		if (fix->parent == fix->parent->parent->left) {
+			Word* uncle = fix->parent->parent->right;
+			if (uncle && uncle->color) {
+				fix->parent->color = 0;
+				uncle->color = 0;
+				if (fix->parent->parent) {
+					fix->parent->parent->color = 1;
+				}
+				fix = fix->parent->parent;
+			}
+			else {
+				if (fix == fix->parent->right) {
+					fix = fix->parent;
+					WordleftRotate(bst, fix);
+				}
+				fix->parent->color = 0;
+				if (fix->parent->parent) {
+					fix->parent->parent->color = 1;
+				}
+				WordrightRotate(bst, fix->parent->parent);
+			}
+		}
+		else {
+			Word* uncle = fix->parent->parent->left;
+			if (uncle && uncle->color) {
+				fix->parent->color = 0;
+				uncle->color = 0;
+				fix->parent->parent->color = 1;
+				fix = fix->parent->parent;
+			}
+			else {
+				if (fix == fix->parent->left) {
+					fix = fix->parent;
+					WordrightRotate(bst, fix);
+				}
+				fix->parent->color = 0;
+				if (fix->parent->parent) {
+					fix->parent->parent->color = 1;
+				}
+				WordleftRotate(bst, fix->parent->parent);
+			}
+		}
+	}
+	bst->root->color = 0;
+}
+
+void WordleftRotate(WordBST* bst, Word* fix) {
+	Word* tmp = fix->right;
+	fix->right = tmp->left;
+	if (tmp->left) {
+		tmp->left->parent = fix;
+	}
+	tmp->parent = fix->parent;
+	if (fix->parent == NULL) {
+		bst->root = tmp;
+	}
+	else if (fix == fix->parent->left) {
+		fix->parent->left = tmp;
+	}
+	else {
+		fix->parent->right = tmp;
+	}
+	tmp->left = fix;
+	fix->parent = tmp;
+}
+
+void WordrightRotate(WordBST* bst, Word* fix) {
+	Word* tmp = fix->left;
+	fix->left = tmp->right;
+	if (tmp->right) {
+		tmp->right->parent = fix;
+	}
+	tmp->parent = fix->parent;
+	if (fix->parent == NULL) {
+		bst->root = tmp;
+	}
+	else if (fix == fix->parent->left) {
+		fix->parent->left = tmp;
+	}
+	else {
+		fix->parent->right = tmp;
+	}
+	tmp->right = fix;
+	fix->parent = tmp;
 }

@@ -5,6 +5,7 @@
 #include "Project.h"
 #define max(a, b) (a) > (b) ? (a) : (b)
 
+
 struct User {
 	char ID[30];
 	UserList* first;
@@ -13,6 +14,7 @@ struct User {
 	User* parent;
 	User* left;
 	User* right;
+	int color;
 };
 struct UserBST {
 	int height;
@@ -34,3 +36,7 @@ void insertUserF(UserBST* bst, User* user);
 void userTweet(User*, char*);
 void insertUserTC(UserBST* , User* );
 UserBST constructUserTCTree(UserBST);
+void printTopFiveUser(User*);
+void UserinsertFixUp(UserBST*, User*);
+void UserleftRotate(UserBST*, User*);
+void UserrightRotate(UserBST*, User*);
