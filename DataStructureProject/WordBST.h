@@ -34,3 +34,4 @@ void printTopFiveWord(Word*);
 void WordinsertFixUp(WordBST*, Word*);
 void WordleftRotate(WordBST*, Word*);
 void WordrightRotate(WordBST*, Word*);
+void destroyWordTree(WordBST);

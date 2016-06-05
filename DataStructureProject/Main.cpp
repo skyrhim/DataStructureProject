@@ -10,7 +10,9 @@ bool isNum(char * chr) {
 	}
 	return true;
 }
+
 int count;
+
 int main() {
 	int command, inputReady = 0;
 	UserBST users, usersF, usersTC;
@@ -98,6 +100,8 @@ int main() {
 			printf("Maximum tweets per user : %d %s\n", findMaxUser(usersTC.root)->tweetc, findMaxUser(usersTC.root)->ID);
 			//printf("userF Tree Height = %d\n", userTreeHeight(usersF.root));
 			//printf("usersTC Tree Height = %d\n", userTreeHeight(usersTC.root));
+			destroyUserTree(usersF);
+			destroyUserTree(usersTC);
 			break;
 		case 2:
 			wordsF = constructWordFTree(words);
@@ -105,11 +109,13 @@ int main() {
 			//printWord(wordsF.root);
 			count = 1;
 			printTopFiveWord(wordsF.root);
+			destroyWordTree(wordsF);
 			break;
 		case 3:
 			usersTC = constructUserTCTree(users);
 			count = 1;
 			printTopFiveUser(usersTC.root);
+			destroyUserTree(usersTC);
 			break;
 		case 99:
 			return 0;

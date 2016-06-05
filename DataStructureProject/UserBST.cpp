@@ -1,6 +1,46 @@
 #include "UserBST.h"
 
 extern int count;
+
+//User가 트윗을 했을 때 그 정보를 기록
+void userTweet(User* root, char* id) {
+	int compare;
+	while (1) {
+		if (root == NULL) {
+			return;
+		}
+		if ((compare = strcmp(root->ID, id)) == 0) {
+			root->tweetc++;
+			return;
+		}
+		else if (compare < 0) {
+			root = root->right;
+		}
+		else {
+			root = root->left;
+		}
+	}
+}
+
+//트윗을 가장 많이한 5명의 유저 출력
+void printTopFiveUser(User* root) {
+	if (root == NULL) {
+		printf("유저가 0명 입니다.\n");
+		return;
+	}
+	if (root->right != NULL) {
+		printTopFiveUser(root->right);
+	}
+	if (count == 6) {
+		return;
+	}
+	printf("Top %d : %s %d회\n", count, root->ID, root->tweetc);
+	count++;
+	if (root->left != NULL) {
+		printTopFiveUser(root->left);
+	}
+}
+
 //Tree에서 ID를 찾아 그곳에 friendId 추가
 void insertFriend(UserBST* userBST, char* ID, char* friendId) {
 	User* root = userBST->root;
@@ -33,6 +73,7 @@ void insertFriend(UserBST* userBST, char* ID, char* friendId) {
 		}
 	}
 }
+
 //User삽입 테스트용
 void print(User* root) {
 	if (root->left != NULL) {
@@ -43,6 +84,7 @@ void print(User* root) {
 		print(root->right);
 	}
 }
+
 //UserBST 초기화
 void UserBSTInit(UserBST* users) {
 	users->height = 0;
@@ -50,11 +92,15 @@ void UserBSTInit(UserBST* users) {
 	users->totalFriend = 0;
 	users->totalUesr = 0;
 }
+
 //UserTree의 높이 계산
 int userTreeHeight(User* root) {
 	if (root == NULL) return 0;
 	return max(userTreeHeight(root->left) + 1, userTreeHeight(root->right));
 }
+
+//Tree 구성
+
 //minUser의 가장 왼쪽 노드를 찾아줌
 User* findMinUser(User* minUser) {
 	while (1) {
@@ -66,6 +112,7 @@ User* findMinUser(User* minUser) {
 		}
 	}
 }
+
 //maxUser의 가장 오른쪽 노드를 찾아줌
 User* findMaxUser(User* maxUser) {
 	while (1) {
@@ -77,6 +124,7 @@ User* findMaxUser(User* maxUser) {
 		}
 	}
 }
+
 //target노드 자리에 newUser를 붙여줌;
 void transPlant(UserBST* bst, User* target, User* newUser) {
 	if (target->parent == NULL) {
@@ -92,6 +140,7 @@ void transPlant(UserBST* bst, User* target, User* newUser) {
 		newUser->parent = target->parent;
 	}
 }
+
 //노드 삽입;
 void insertUser(UserBST* bst, char* ID) {
 	User* tmp = (User*)malloc(sizeof(User));
@@ -124,6 +173,7 @@ void insertUser(UserBST* bst, char* ID) {
 	}
 	UserinsertFixUp(bst, tmp);
 }
+
 //노드 삭제
 void deleteUser(UserBST* bst, User* deleteUser) {
 	User* parent = deleteUser->parent;
@@ -147,19 +197,15 @@ void deleteUser(UserBST* bst, User* deleteUser) {
 		successor->left = deleteUser->left;
 		successor->left->parent = successor;
 	}
-	UserList *del = deleteUser->first;
-	for (int i = 0; i < deleteUser->friends; i++) {
-		UserList *delNext = del->next;
-		free(del);
-		del = delNext;
-	}
-	free(deleteUser);
+	freeUser(deleteUser);
 }
+
 //User를 친구의 수를 기준으로 트리에 삽입
 void insertUserF(UserBST* bst, User* user) {
 	User* tmp = (User*)malloc(sizeof(User));
 	tmp->left = NULL; tmp->right = NULL; tmp->friends = user->friends;
-	memcpy(tmp->ID, user->ID, 30); tmp->color = 1; tmp->parent = NULL;
+	memcpy(tmp->ID, user->ID, 30); tmp->color = 1; tmp->parent = NULL; tmp->friends = NULL;
+	tmp->first = NULL;
 	if (bst->root == NULL) {
 		bst->root = tmp;
 		tmp->color = 0;
@@ -186,51 +232,14 @@ void insertUserF(UserBST* bst, User* user) {
 	}
 	UserinsertFixUp(bst, tmp);
 }
-//친구의 수를 기준으로 한 Tree구성
-UserBST constructUserFTree(UserBST target) {
-	UserBST bst;
-	UserBSTInit(&bst);
-	User** UserQueue = (User**)malloc(sizeof(User*) * (target.totalUesr));
-	int front = 0, back = 0;
-	UserQueue[back++] = target.root;
-	insertUserF(&bst, UserQueue[front]);
-	while (front < back) {
-		int tmpback = back;
-		for (; front < tmpback; front++) {
-			if (UserQueue[front]->left) {
-				UserQueue[back++] = UserQueue[front]->left;
-				insertUserF(&bst, UserQueue[front]->left);
-			}
-			if (UserQueue[front]->right) {
-				UserQueue[back++] = UserQueue[front]->right;
-				insertUserF(&bst, UserQueue[front]->right);
-			}
-		}
-	}
-	free(UserQueue);
-	return bst;
-}
-//User가 트윗을 했을 때 그 정보를 기록
-void userTweet(User* root, char* id) {
-	int compare;
-	while (1) {
-		if ((compare = strcmp(root->ID, id)) == 0) {
-			root->tweetc++;
-			return;
-		}
-		else if (compare < 0) {
-			root = root->right;
-		}
-		else {
-			root = root->left;
-		}
-	}
-}
+
+
 //User를 트윗수 기준으로 트리에 삽입
 void insertUserTC(UserBST* bst, User* user) {
-	User* tmp = (User*)malloc(sizeof(User));
+	User* tmp = (User*)malloc(sizeof(User)); tmp->first = NULL;
 	tmp->left = NULL; tmp->right = NULL; tmp->tweetc = user->tweetc;
 	memcpy(tmp->ID, user->ID, 30); tmp->color = 1; tmp->parent = NULL;
+	tmp->first = NULL;
 	if (bst->root == NULL) {
 		bst->root = tmp;
 		tmp->color = 0;
@@ -257,14 +266,21 @@ void insertUserTC(UserBST* bst, User* user) {
 	}
 	UserinsertFixUp(bst, tmp);
 }
+
 //User를 트윗수 기준으로 Tree를 만들 때
 UserBST constructUserTCTree(UserBST target) {
 	UserBST bst;
 	UserBSTInit(&bst);
+	bst.totalUesr = target.totalUesr;
 	User** UserQueue = (User**)malloc(sizeof(User*) * (target.totalUesr));
 	int front = 0, back = 0;
 	UserQueue[back++] = target.root;
-	insertUserTC(&bst, UserQueue[front]);
+	if (UserQueue[front]) {
+		insertUserTC(&bst, UserQueue[front]);
+	}
+	else {
+		return bst;
+	}
 	while (front < back) {
 		int tmpback = back;
 		for (; front < tmpback; front++) {
@@ -281,20 +297,39 @@ UserBST constructUserTCTree(UserBST target) {
 	free(UserQueue);
 	return bst;
 }
-void printTopFiveUser(User* root) {
-	if (root->right != NULL) {
-		printTopFiveUser(root->right);
+
+//친구의 수를 기준으로 한 Tree구성
+UserBST constructUserFTree(UserBST target) {
+	UserBST bst;
+	UserBSTInit(&bst);
+	bst.totalUesr = target.totalUesr;
+	User** UserQueue = (User**)malloc(sizeof(User*) * (target.totalUesr));
+	int front = 0, back = 0;
+	UserQueue[back++] = target.root;
+	if (UserQueue[front]) {
+		insertUserF(&bst, UserQueue[front]);
 	}
-	if (count == 6) {
-		return;
+	else {
+		return bst;
 	}
-	printf("Top %d : %s %d회\n", count, root->ID, root->tweetc);
-	count++;
-	if (root->left != NULL) {
-		printTopFiveUser(root->left);
+	while (front < back) {
+		int tmpback = back;
+		for (; front < tmpback; front++) {
+			if (UserQueue[front]->left) {
+				UserQueue[back++] = UserQueue[front]->left;
+				insertUserF(&bst, UserQueue[front]->left);
+			}
+			if (UserQueue[front]->right) {
+				UserQueue[back++] = UserQueue[front]->right;
+				insertUserF(&bst, UserQueue[front]->right);
+			}
+		}
 	}
+	free(UserQueue);
+	return bst;
 }
 
+//RB트리 insertFix
 void UserinsertFixUp(UserBST* bst, User* fix) {
 	while (fix->parent && fix->parent->color) {
 		if (fix->parent == fix->parent->parent->left) {
@@ -343,6 +378,7 @@ void UserinsertFixUp(UserBST* bst, User* fix) {
 	bst->root->color = 0;
 }
 
+//RB트리 Tree Left Rotate
 void UserleftRotate(UserBST* bst, User* fix) {
 	User* tmp = fix->right;
 	fix->right = tmp->left;
@@ -363,6 +399,7 @@ void UserleftRotate(UserBST* bst, User* fix) {
 	fix->parent = tmp;
 }
 
+//RB트리 Tree Right Rotate
 void UserrightRotate(UserBST* bst, User* fix) {
 	User* tmp = fix->left;
 	fix->left = tmp->right;
@@ -381,4 +418,38 @@ void UserrightRotate(UserBST* bst, User* fix) {
 	}
 	tmp->right = fix;
 	fix->parent = tmp;
+}
+
+//UserTree delete
+void destroyUserTree(UserBST target) {
+	UserBST bst;
+	UserBSTInit(&bst);
+	User** UserQueue = (User**)malloc(sizeof(User*) * (target.totalUesr + 1));
+	int front = 0, back = 0;
+	UserQueue[back++] = target.root;
+	while (front < back) {
+		int tmpback = back;
+		for (; front < tmpback; front++) {
+			if (UserQueue[front] && UserQueue[front]->left) {
+				UserQueue[back++] = UserQueue[front]->left;
+			}
+			if (UserQueue[front] && UserQueue[front]->right) {
+				UserQueue[back++] = UserQueue[front]->right;
+			}
+			freeUser(UserQueue[front]);
+		}
+	}
+	free(UserQueue);
+	return;
+}
+
+//free User Data
+void freeUser(User* user) {
+	UserList* tmp = user->first;
+	while (tmp) {
+		UserList* next = tmp->next;
+		free(tmp);
+		tmp = next;
+	}
+	free(user);
 }

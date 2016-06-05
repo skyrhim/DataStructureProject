@@ -1,6 +1,27 @@
 #include "WordBST.h"
 
 extern int count;
+
+//가장 많이 Tweet된 단어 5개
+void printTopFiveWord(Word* root) {
+	if (root == NULL) {
+		printf("단어의 갯수가 0개 입니다.\n");
+		return;
+	}
+	if (root->right != NULL) {
+		printTopFiveWord(root->right);
+	}
+	if (count == 6) {
+		return;
+	}
+	printf("Top %d : %s %d회\n", count, root->tweet, root->userCount);
+	count++;
+	if (root->left != NULL) {
+		printTopFiveWord(root->left);
+	}
+}
+
+//Tree의 단어들 출력
 void printWord(Word* root) {
 	if (root->left != NULL) {
 		printWord(root->left);
@@ -10,15 +31,20 @@ void printWord(Word* root) {
 		printWord(root->right);
 	}
 }
+
+//WordTree 초기화
 void WordBSTInit(WordBST* words) {
 	words->height = 0;
 	words->root = NULL;
 	words->totalTweet = 0;
 }
+
+//WordTree의 높이
 int wordTreeHeight(Word* root) {
 	if (root == NULL) return 0;
 	return max(wordTreeHeight(root->left) + 1, wordTreeHeight(root->right) + 1);
 }
+
 //minWord의 가장 왼쪽노드를 찾아줌
 Word* findMinWord(Word* minWord) {
 	while (1) {
@@ -30,6 +56,7 @@ Word* findMinWord(Word* minWord) {
 		}
 	}
 }
+
 //maxWord의 가장 왼쪽노드를 찾아줌
 Word* findMaxWord(Word* maxWord) {
 	while (1) {
@@ -57,14 +84,19 @@ void transPlant(WordBST* bst, Word* target, Word* newWord) {
 		newWord->parent = target->parent;
 	}
 }
-//노드 삽입;
+
+//노드 삽입
 void insertWord(WordBST* bst, char* tweet, char* tweetID) {
 	Word* tmp = (Word*)malloc(sizeof(Word));
 	tmp->userCount = 1; tmp->first = NULL; tmp->color = 1;
 	tmp->left = NULL; tmp->right = NULL; tmp->parent = NULL; memcpy(tmp->tweet, tweet, 200);
 	bst->totalTweet++;
 	if (bst->root == NULL) {
+		UserList *temp = (UserList*)malloc(sizeof(UserList));
+		memcpy(temp->ID, tweetID, 30);
+		temp->next = NULL;
 		bst->root = tmp;
+		tmp->first = temp;
 		bst->root->color = 0;
 		return;
 	}
@@ -110,6 +142,7 @@ void insertWord(WordBST* bst, char* tweet, char* tweetID) {
 	}
 	WordinsertFixUp(bst, tmp);
 }
+
 //노드 삭제
 void deleteWord(WordBST* bst, Word* deleteWord) {
 	Word* parent = deleteWord->parent;
@@ -142,6 +175,7 @@ void deleteWord(WordBST* bst, Word* deleteWord) {
 	free(deleteWord);
 }
 
+//단어 빈도순 순으로 Tree에 삽입
 void insertWordF(WordBST *bst, Word *word) {
 	Word *tmp = (Word*)malloc(sizeof(Word));
 	tmp->left = NULL; tmp->right = NULL; tmp->userCount = word->userCount; tmp->parent = NULL;
@@ -177,13 +211,20 @@ void insertWordF(WordBST *bst, Word *word) {
 	WordinsertFixUp(bst, tmp);
 }
 
+//단어 빈도순 순을 기준으로한 Tree구성
 WordBST constructWordFTree(WordBST target) {
 	WordBST bst;
 	WordBSTInit(&bst);
+	bst.totalTweet = target.totalTweet;
 	Word** WordQueue = (Word**)malloc(sizeof(Word*) * (target.totalTweet));
 	int front = 0, back = 0;
 	WordQueue[back++] = target.root;
-	insertWordF(&bst, WordQueue[front]);
+	if (WordQueue[front]) {
+		insertWordF(&bst, WordQueue[front]);
+	}
+	else {
+		return bst;
+	}
 	while (front < back) {
 		int tmpback = back;
 		for (; front < tmpback; front++) {
@@ -201,20 +242,30 @@ WordBST constructWordFTree(WordBST target) {
 	return bst;
 }
 
-void printTopFiveWord(Word* root) {
-	if (root->right != NULL) {
-		printTopFiveWord(root->right);
+//WordTree delete
+void destroyWordTree(WordBST target) {
+	WordBST bst;
+	WordBSTInit(&bst);
+	Word** WordQueue = (Word**)malloc(sizeof(Word*) * (target.totalTweet + 1));
+	int front = 0, back = 0;
+	WordQueue[back++] = target.root;
+	while (front < back) {
+		int tmpback = back;
+		for (; front < tmpback; front++) {
+			if (WordQueue[front] && WordQueue[front]->left) {
+				WordQueue[back++] = WordQueue[front]->left;
+			}
+			if (WordQueue[front] && WordQueue[front]->right) {
+				WordQueue[back++] = WordQueue[front]->right;
+			}
+			free(WordQueue[front]);
+		}
 	}
-	if (count == 6) {
-		return;
-	}
-	printf("Top %d : %s %d회\n", count, root->tweet, root->userCount);
-	count++;
-	if (root->left != NULL) {
-		printTopFiveWord(root->left);
-	}
+	free(WordQueue);
+	return;
 }
 
+//RB Tree Fix
 void WordinsertFixUp(WordBST* bst, Word* fix) {
 	while (fix->parent && fix->parent->color) {
 		if (fix->parent == fix->parent->parent->left) {
@@ -263,6 +314,7 @@ void WordinsertFixUp(WordBST* bst, Word* fix) {
 	bst->root->color = 0;
 }
 
+//RB Tree Left Rotate
 void WordleftRotate(WordBST* bst, Word* fix) {
 	Word* tmp = fix->right;
 	fix->right = tmp->left;
@@ -283,6 +335,7 @@ void WordleftRotate(WordBST* bst, Word* fix) {
 	fix->parent = tmp;
 }
 
+//RB Tree Right Rotate
 void WordrightRotate(WordBST* bst, Word* fix) {
 	Word* tmp = fix->left;
 	fix->left = tmp->right;
