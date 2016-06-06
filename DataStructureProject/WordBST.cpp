@@ -1,6 +1,35 @@
 #include "WordBST.h"
 
 extern int count;
+//word를 트윗한 User의 고유ID 출력
+void printTweetUser(Word* word) {
+	if (word == NULL) {
+		printf("해당단어를 트윗한 User가 없습니다.\n");
+		return;
+	}
+	UserList* tmp = word->first;
+	for (int i = 1; i <= word->userCount; i++) {
+		printf("%d. %s\n", i, tmp->ID);
+		tmp = tmp->next;
+	}
+}
+
+//WordTree에서 Word찾기
+Word* findWord(Word* root, char* word) {
+	int compare;
+	while (root) {
+		if ((compare = strcmp(root->tweet, word)) > 0) {
+			root = root->left;
+		}
+		else if (compare < 0) {
+			root = root->right;
+		}
+		else {
+			return root;
+		}
+	}
+	return NULL;
+}
 
 //가장 많이 Tweet된 단어 5개
 void printTopFiveWord(Word* root) {
@@ -89,7 +118,7 @@ void transPlant(WordBST* bst, Word* target, Word* newWord) {
 void insertWord(WordBST* bst, char* tweet, char* tweetID) {
 	Word* tmp = (Word*)malloc(sizeof(Word));
 	tmp->userCount = 1; tmp->first = NULL; tmp->color = 1;
-	tmp->left = NULL; tmp->right = NULL; tmp->parent = NULL; memcpy(tmp->tweet, tweet, 200);
+	tmp->left = NULL; tmp->right = NULL; tmp->parent = NULL; memcpy(tmp->tweet, tweet, 300);
 	bst->totalTweet++;
 	if (bst->root == NULL) {
 		UserList *temp = (UserList*)malloc(sizeof(UserList));
@@ -166,20 +195,14 @@ void deleteWord(WordBST* bst, Word* deleteWord) {
 		successor->left = deleteWord->left;
 		successor->left->parent = successor;
 	}
-	UserList *del = deleteWord->first;
-	for (int i = 0; i < deleteWord->userCount; i++) {
-		UserList *delNext = del->next;
-		free(del);
-		del = delNext;
-	}
-	free(deleteWord);
+	freeWord(deleteWord);
 }
 
 //단어 빈도순 순으로 Tree에 삽입
 void insertWordF(WordBST *bst, Word *word) {
 	Word *tmp = (Word*)malloc(sizeof(Word));
 	tmp->left = NULL; tmp->right = NULL; tmp->userCount = word->userCount; tmp->parent = NULL;
-	memcpy(tmp->tweet, word->tweet, 200); tmp->color = 1;
+	memcpy(tmp->tweet, word->tweet, 300); tmp->color = 1; tmp->first = NULL;
 	if (!bst->root) {
 		bst->root = tmp;
 		bst->root->color = 0;
@@ -258,7 +281,7 @@ void destroyWordTree(WordBST target) {
 			if (WordQueue[front] && WordQueue[front]->right) {
 				WordQueue[back++] = WordQueue[front]->right;
 			}
-			free(WordQueue[front]);
+			freeWord(WordQueue[front]);
 		}
 	}
 	free(WordQueue);
@@ -354,4 +377,14 @@ void WordrightRotate(WordBST* bst, Word* fix) {
 	}
 	tmp->right = fix;
 	fix->parent = tmp;
+}
+
+void freeWord(Word* word) {
+	UserList* tmp = word->first;
+	while (tmp) {
+		UserList* next = tmp->next;
+		free(tmp);
+		tmp = next;
+	}
+	free(word);
 }

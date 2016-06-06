@@ -17,7 +17,7 @@ int main() {
 	int command, inputReady = 0;
 	UserBST users, usersF, usersTC;
 	WordBST words, wordsF;
-	char tmp1[1000], tmp2[1000];
+	char tmp1[1000], tmp2[1000], userId[30], mention[300];
 	UserBSTInit(&users);
 	WordBSTInit(&words);
 	while (1) {
@@ -41,16 +41,19 @@ int main() {
 		else {
 			command = atoi(tmp2);
 		}
-		if (inputReady == 0 && command != 0) {
-			printf("입력을 먼저 받아주세요.\n");
+		if (inputReady == 0 && command != 0 && command != 99) {
+			system("cls");
+			printf("입력을 먼저 받아주세요.\n\n\n\n\n\n");
 			continue;
 		}
 		if (inputReady == 1 && command == 0) {
-			printf("이미 입력을 받았습니다. 다른 명령어를 선택해주세요.\n");
+			system("cls");
+			printf("이미 입력을 받았습니다. 다른 명령어를 선택해주세요.\n\n\n\n\n\n");
 			continue;
 		}
 		switch (command) {
 		case 0: {
+			system("cls");
 			inputReady = 1;
 			FILE* userIn = fopen("user.txt", "r");
 			FILE* friendIn = fopen("friend.txt", "r");
@@ -87,9 +90,11 @@ int main() {
 			//printf("word tree height : %d\n", wordTreeHeight(words.root));
 			//print(users.root);
 			//printWord(words.root);
+			printf("\n\n\n\n\n");
 			break;
 		}
 		case 1:
+			system("cls");
 			usersF = constructUserFTree(users);
 			usersTC = constructUserTCTree(users);
 			printf("Average number of friends : %d\n", users.totalFriend / users.totalUesr);
@@ -100,27 +105,50 @@ int main() {
 			printf("Maximum tweets per user : %d %s\n", findMaxUser(usersTC.root)->tweetc, findMaxUser(usersTC.root)->ID);
 			//printf("userF Tree Height = %d\n", userTreeHeight(usersF.root));
 			//printf("usersTC Tree Height = %d\n", userTreeHeight(usersTC.root));
+			printf("\n\n\n\n\n\n\n");
 			destroyUserTree(usersF);
 			destroyUserTree(usersTC);
 			break;
 		case 2:
+			system("cls");
 			wordsF = constructWordFTree(words);
 			//printf("wordsF Tree Height : %d\n", wordTreeHeight(wordsF.root));
 			//printWord(wordsF.root);
 			count = 1;
 			printTopFiveWord(wordsF.root);
 			destroyWordTree(wordsF);
+			printf("\n\n\n\n\n\n\n");
 			break;
 		case 3:
+			system("cls");
 			usersTC = constructUserTCTree(users);
 			count = 1;
 			printTopFiveUser(usersTC.root);
 			destroyUserTree(usersTC);
+			printf("\n\n\n\n\n\n\n");
+			break;
+		case 4:
+			system("cls");
+			printf("한 단어를 입력해주세요 : ");
+			scanf("%s", mention);
+			printf("%s을 tweet한 User.\n", mention);
+			printTweetUser(findWord(words.root, mention));
+			printf("\n\n\n\n\n");
+			break;
+		case 5:
+			system("cls");
+			printf("User의 ID를 입력해주세요 : ");
+			scanf("%s", userId);
+			printf("%s의 친구는 다음과 같습니다.\n", userId);
+			printFriends(findUser(users.root, userId));
+			printf("\n\n\n\n\n");
 			break;
 		case 99:
 			return 0;
 		default:
+			system("cls");
 			printf("없는 명령어입니다. 다른 명령을 입력해주세요\n");
+			printf("\n\n\n\n\n\n\n");
 			break;
 		}
 	}

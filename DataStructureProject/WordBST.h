@@ -7,7 +7,7 @@
 
 
 struct Word {
-	char tweet[200];
+	char tweet[300];
 	UserList* first;
 	int userCount;
 	Word* parent;
@@ -35,3 +35,6 @@ void WordinsertFixUp(WordBST*, Word*);
 void WordleftRotate(WordBST*, Word*);
 void WordrightRotate(WordBST*, Word*);
 void destroyWordTree(WordBST);
+Word* findWord(Word*, char*);
+void printTweetUser(Word*);
+void freeWord(Word*);

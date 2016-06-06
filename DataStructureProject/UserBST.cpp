@@ -1,6 +1,37 @@
 #include "UserBST.h"
 
 extern int count;
+//User의 친구 출력
+void printFriends(User* user) {
+	if (user == NULL) {
+		printf("해당 유저가 존재하지 않습니다.\n");
+		return;
+	}
+	UserList* tmp = user->first;
+	for (int i = 1; i <= user->friends; i++) {
+		printf("%d. %s\n", i, tmp->ID);
+	}
+	if (user->friends == 0) {
+		printf("해당 유저의 친구는 0명입니다.");
+	}
+}
+
+//UserID로 User찾기
+User* findUser(User* root, char* userId) {
+	int compare;
+	while (root) {
+		if ((compare = strcmp(root->ID, userId)) > 0) {
+			root = root->left;
+		}
+		else if (compare < 0) {
+			root = root->right;
+		}
+		else {
+			return root;
+		}
+	}
+	return NULL;
+}
 
 //User가 트윗을 했을 때 그 정보를 기록
 void userTweet(User* root, char* id) {
@@ -204,7 +235,7 @@ void deleteUser(UserBST* bst, User* deleteUser) {
 void insertUserF(UserBST* bst, User* user) {
 	User* tmp = (User*)malloc(sizeof(User));
 	tmp->left = NULL; tmp->right = NULL; tmp->friends = user->friends;
-	memcpy(tmp->ID, user->ID, 30); tmp->color = 1; tmp->parent = NULL; tmp->friends = NULL;
+	memcpy(tmp->ID, user->ID, 30); tmp->color = 1; tmp->parent = NULL;
 	tmp->first = NULL;
 	if (bst->root == NULL) {
 		bst->root = tmp;
@@ -232,7 +263,6 @@ void insertUserF(UserBST* bst, User* user) {
 	}
 	UserinsertFixUp(bst, tmp);
 }
-
 
 //User를 트윗수 기준으로 트리에 삽입
 void insertUserTC(UserBST* bst, User* user) {

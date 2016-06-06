@@ -42,3 +42,5 @@ void UserinsertFixUp(UserBST*, User*);
 void UserleftRotate(UserBST*, User*);
 void UserrightRotate(UserBST*, User*);
 void freeUser(User*);
+User* findUser(User*, char*);
+void printFriends(User*);
