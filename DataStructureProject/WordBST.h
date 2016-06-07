@@ -3,7 +3,9 @@
 #include <cstdio>
 #include <cstring>
 #include "Project.h"
-#define max(a, b) (a) > (b) ? (a) : (b)
+#ifndef Max
+#define Max(a, b) (a) > (b) ? (a) : (b)
+#endif 
 
 
 struct Word {
@@ -28,8 +30,6 @@ void transPlant(WordBST*, Word*, Word*);
 int wordTreeHeight(Word*);
 void WordBSTInit(WordBST*);
 void printWord(Word*);
-void insertWordF(WordBST *bst, Word *word);
-WordBST constructWordFTree(WordBST);
 void printTopFiveWord(Word*);
 void WordinsertFixUp(WordBST*, Word*);
 void WordleftRotate(WordBST*, Word*);
@@ -38,3 +38,4 @@ void destroyWordTree(WordBST);
 Word* findWord(Word*, char*);
 void printTweetUser(Word*);
 void freeWord(Word*);
+void printTopFiveTweetWord(WordBST);

@@ -3,7 +3,10 @@
 #include <cstdio>
 #include <cstring>
 #include "Project.h"
-#define max(a, b) (a) > (b) ? (a) : (b)
+#ifndef Max
+#define Max(a, b) (a) > (b) ? (a) : (b)
+#endif 
+
 
 
 struct User {
@@ -22,7 +25,7 @@ struct UserBST {
 	int totalFriend;
 	User* root;
 };
-void deleteUser(UserBST* , User*);
+void deleteUser(UserBST*, User*);
 User* findMinUser(User*);
 User* findMaxUser(User*);
 void insertUser(UserBST*, char*);
@@ -31,11 +34,7 @@ int userTreeHeight(User*);
 void UserBSTInit(UserBST*);
 void print(User*);
 void insertFriend(UserBST*, char*, char*);
-UserBST constructUserFTree(UserBST);
-void insertUserF(UserBST* bst, User* user);
 void userTweet(User*, char*);
-void insertUserTC(UserBST* , User* );
-UserBST constructUserTCTree(UserBST);
 void destroyUserTree(UserBST);
 void printTopFiveUser(User*);
 void UserinsertFixUp(UserBST*, User*);
@@ -44,3 +43,5 @@ void UserrightRotate(UserBST*, User*);
 void freeUser(User*);
 User* findUser(User*, char*);
 void printFriends(User*);
+void printMinMaxUser(UserBST, int);
+void printTopFiveTweetUser(UserBST);

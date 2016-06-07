@@ -1,6 +1,61 @@
 #include "WordBST.h"
 
 extern int count;
+
+//가장 많이 트윗된 5개의 단어 출력
+void printTopFiveTweetWord(WordBST words) {
+	if (!words.root) {
+		printf("0 Word\n");
+		return;
+	}
+	Word* five[5] = { NULL };
+	Word** wordQueue = (Word**)malloc(sizeof(Word*) * words.totalTweet);
+	int front = 0, back = 0;
+	five[0] = wordQueue[back++] = words.root;
+	while (front < back) {
+		int tmpback = back;
+		for (; front < tmpback; front++) {
+			if (wordQueue[front]->left) {
+				wordQueue[back++] = wordQueue[front]->left;
+				if (!five[4] || wordQueue[front]->left->userCount > five[4]->userCount) {
+					int i;
+					for (i = 4; i >= 1; i--) {
+						if (!five[i - 1] || five[i - 1]->userCount < wordQueue[front]->left->userCount) {
+							five[i] = five[i - 1];
+						}
+						else {
+							break;
+						}
+					}
+					five[i] = wordQueue[front]->left;
+				}
+			}
+			if (wordQueue[front]->right) {
+				wordQueue[back++] = wordQueue[front]->right;
+				if (!five[4] || wordQueue[front]->right->userCount > five[4]->userCount) {
+					int i;
+					for (i = 4; i >= 1; i--) {
+						if (!five[i - 1] || five[i - 1]->userCount < wordQueue[front]->right->userCount) {
+							five[i] = five[i - 1];
+						}
+						else {
+							break;
+						}
+					}
+					five[i] = wordQueue[front]->right;
+				}
+			}
+		}
+	}
+	for (int i = 1; i <= 5; i++) {
+		if (five[i]) {
+			printf("Top %d : %s %d회\n", i, five[i - 1]->tweet, five[i - 1]->userCount);
+		}
+	}
+	free(wordQueue);
+	return;
+}
+
 //word를 트윗한 User의 고유ID 출력
 void printTweetUser(Word* word) {
 	if (word == NULL) {
@@ -31,25 +86,6 @@ Word* findWord(Word* root, char* word) {
 	return NULL;
 }
 
-//가장 많이 Tweet된 단어 5개
-void printTopFiveWord(Word* root) {
-	if (root == NULL) {
-		printf("단어의 갯수가 0개 입니다.\n");
-		return;
-	}
-	if (root->right != NULL) {
-		printTopFiveWord(root->right);
-	}
-	if (count == 6) {
-		return;
-	}
-	printf("Top %d : %s %d회\n", count, root->tweet, root->userCount);
-	count++;
-	if (root->left != NULL) {
-		printTopFiveWord(root->left);
-	}
-}
-
 //Tree의 단어들 출력
 void printWord(Word* root) {
 	if (root->left != NULL) {
@@ -71,7 +107,7 @@ void WordBSTInit(WordBST* words) {
 //WordTree의 높이
 int wordTreeHeight(Word* root) {
 	if (root == NULL) return 0;
-	return max(wordTreeHeight(root->left) + 1, wordTreeHeight(root->right) + 1);
+	return Max(wordTreeHeight(root->left) + 1, wordTreeHeight(root->right) + 1);
 }
 
 //minWord의 가장 왼쪽노드를 찾아줌
@@ -143,7 +179,7 @@ void insertWord(WordBST* bst, char* tweet, char* tweetID) {
 			}
 			parent = parent->left;
 		}
-		else if(strcmp(tweet, parent->tweet) > 0){
+		else if (strcmp(tweet, parent->tweet) > 0) {
 			if (parent->right == NULL) {
 				UserList *temp = (UserList*)malloc(sizeof(UserList));
 				memcpy(temp->ID, tweetID, 30);
@@ -198,73 +234,6 @@ void deleteWord(WordBST* bst, Word* deleteWord) {
 	freeWord(deleteWord);
 }
 
-//단어 빈도순 순으로 Tree에 삽입
-void insertWordF(WordBST *bst, Word *word) {
-	Word *tmp = (Word*)malloc(sizeof(Word));
-	tmp->left = NULL; tmp->right = NULL; tmp->userCount = word->userCount; tmp->parent = NULL;
-	memcpy(tmp->tweet, word->tweet, 300); tmp->color = 1; tmp->first = NULL;
-	if (!bst->root) {
-		bst->root = tmp;
-		bst->root->color = 0;
-		return;
-	}
-	Word *parent = bst->root;
-	while (1) {
-		if (parent->userCount > tmp->userCount) {
-			if (!parent->left) {
-				parent->left = tmp;
-				tmp->parent = parent;
-				break;
-			}
-			else {
-				parent = parent->left;
-			}
-		}
-		else {
-			if (!parent->right) {
-				parent->right = tmp;
-				tmp->parent = parent;
-				break;
-			}
-			else {
-				parent = parent->right;
-			}
-		}
-	}
-	WordinsertFixUp(bst, tmp);
-}
-
-//단어 빈도순 순을 기준으로한 Tree구성
-WordBST constructWordFTree(WordBST target) {
-	WordBST bst;
-	WordBSTInit(&bst);
-	bst.totalTweet = target.totalTweet;
-	Word** WordQueue = (Word**)malloc(sizeof(Word*) * (target.totalTweet));
-	int front = 0, back = 0;
-	WordQueue[back++] = target.root;
-	if (WordQueue[front]) {
-		insertWordF(&bst, WordQueue[front]);
-	}
-	else {
-		return bst;
-	}
-	while (front < back) {
-		int tmpback = back;
-		for (; front < tmpback; front++) {
-			if (WordQueue[front]->left) {
-				WordQueue[back++] = WordQueue[front]->left;
-				insertWordF(&bst, WordQueue[front]->left);
-			}
-			if (WordQueue[front]->right) {
-				WordQueue[back++] = WordQueue[front]->right;
-				insertWordF(&bst, WordQueue[front]->right);
-			}
-		}
-	}
-	free(WordQueue);
-	return bst;
-}
-
 //WordTree delete
 void destroyWordTree(WordBST target) {
 	WordBST bst;
@@ -272,6 +241,9 @@ void destroyWordTree(WordBST target) {
 	Word** WordQueue = (Word**)malloc(sizeof(Word*) * (target.totalTweet + 1));
 	int front = 0, back = 0;
 	WordQueue[back++] = target.root;
+	if (!target.root) {
+		return;
+	}
 	while (front < back) {
 		int tmpback = back;
 		for (; front < tmpback; front++) {

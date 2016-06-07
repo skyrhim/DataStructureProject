@@ -1,4 +1,3 @@
-#include <cstring>
 #include "UserBST.h"
 #include "WordBST.h"
 
@@ -15,8 +14,8 @@ int count;
 
 int main() {
 	int command, inputReady = 0;
-	UserBST users, usersF, usersTC;
-	WordBST words, wordsF;
+	UserBST users;
+	WordBST words;
 	char tmp1[1000], tmp2[1000], userId[30], mention[300];
 	UserBSTInit(&users);
 	WordBSTInit(&words);
@@ -91,41 +90,25 @@ int main() {
 			//print(users.root);
 			//printWord(words.root);
 			printf("\n\n\n\n\n");
+			free(userIn);
+			free(wordIn);
+			free(friendIn);
 			break;
 		}
 		case 1:
 			system("cls");
-			usersF = constructUserFTree(users);
-			usersTC = constructUserTCTree(users);
-			printf("Average number of friends : %d\n", users.totalFriend / users.totalUesr);
-			printf("Minimum number of friends : %d %s\n", findMinUser(usersF.root)->friends, findMinUser(usersF.root)->ID);
-			printf("Maximum number of friends : %d %s\n\n", findMaxUser(usersF.root)->friends, findMaxUser(usersF.root)->ID);
-			printf("Average tweets per user : %d\n", words.totalTweet / users.totalUesr);
-			printf("Minimum tweets per uesr : %d %s\n", findMinUser(usersTC.root)->tweetc, findMinUser(usersTC.root)->ID);
-			printf("Maximum tweets per user : %d %s\n", findMaxUser(usersTC.root)->tweetc, findMaxUser(usersTC.root)->ID);
-			//printf("userF Tree Height = %d\n", userTreeHeight(usersF.root));
-			//printf("usersTC Tree Height = %d\n", userTreeHeight(usersTC.root));
-			printf("\n\n\n\n\n\n\n");
-			destroyUserTree(usersF);
-			destroyUserTree(usersTC);
+			printMinMaxUser(users, words.totalTweet);
+			printf("\n\n\n\n\n");
 			break;
 		case 2:
 			system("cls");
-			wordsF = constructWordFTree(words);
-			//printf("wordsF Tree Height : %d\n", wordTreeHeight(wordsF.root));
-			//printWord(wordsF.root);
-			count = 1;
-			printTopFiveWord(wordsF.root);
-			destroyWordTree(wordsF);
-			printf("\n\n\n\n\n\n\n");
+			printTopFiveTweetWord(words);
+			printf("\n\n\n\n\n");
 			break;
 		case 3:
 			system("cls");
-			usersTC = constructUserTCTree(users);
-			count = 1;
-			printTopFiveUser(usersTC.root);
-			destroyUserTree(usersTC);
-			printf("\n\n\n\n\n\n\n");
+			printTopFiveTweetUser(users);
+			printf("\n\n\n\n\n");
 			break;
 		case 4:
 			system("cls");
@@ -144,6 +127,8 @@ int main() {
 			printf("\n\n\n\n\n");
 			break;
 		case 99:
+			destroyUserTree(users);
+			destroyWordTree(words);
 			return 0;
 		default:
 			system("cls");
