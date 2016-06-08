@@ -1,17 +1,72 @@
 #include "UserBST.h"
 
+extern UserBST users;
 User* five[5];
+void delFollower(User* delUser) {
+	UserList* follower = delUser->follower;
+	while (follower) {
+		UserList* following = follower->user->following;
+		if (following->user == delUser) {
+			follower->user->following = following->next;
+			follower->user->friends--;
+			users.totalFriend--;
+			free(following);
+		}
+		else {
+			UserList* pre = following;
+			following = following->next;
+			while (following) {
+				if (following->user == delUser) {
+					pre->next = following->next;
+					follower->user->friends--;
+					users.totalFriend--;
+					free(following);
+					break;
+				}
+				pre = pre->next;
+				following = following->next;
+			}
+		}
+		follower = follower->next;
+	}
+}
+
+void delFollowing(User* delUser) {
+	UserList* following = delUser->following;
+	while (following) {
+		UserList* follower = following->user->follower;
+		if (follower->user == delUser) {
+			following->user->follower = follower->next;
+			free(follower);
+		}
+		else {
+			UserList* pre = follower;
+			follower = follower->next;
+			while (follower) {
+				if (follower->user == delUser) {
+					pre->next = follower->next;
+					free(follower);
+					break;
+				}
+				pre = pre->next;
+				follower = follower->next;
+			}
+		}
+		following = following->next;
+	}
+}
+
 void cleanFiveUser() {
 	for (int i = 0; i < 5; i++) {
 		five[i] = 0;
 	}
 }
 
-void delTweet(User* user, char* tweet) {
+void delTweet(User* user, Word* tweet, int count) {
 	if (user == NULL) {
 		return;
 	}
-	user->tweetc--;
+	user->tweetc = user->tweetc - count;
 	wordList* word = user->wordFirst;
 	wordList *pre;
 	if (word->word == tweet) {
@@ -19,7 +74,7 @@ void delTweet(User* user, char* tweet) {
 		free(word);
 		return;
 	}
-	pre = word;
+	pre = user->wordFirst;
 	word = word->next;
 	while (word) {
 		if (word->word == tweet) {
@@ -27,7 +82,8 @@ void delTweet(User* user, char* tweet) {
 			free(word);
 			return;
 		}
-		word = word->next;
+		pre = pre->next;
+		word = pre->next;
 	}
 }
 
@@ -78,7 +134,7 @@ void printTopFiveTweetUser(UserBST users) {
 	}
 	for (int i = 1; i <= 5; i++) {
 		if (five[i - 1]) {
-			printf("Top %d : %s %dȸ\n", i, five[i - 1]->ID, five[i - 1]->tweetc);
+			printf("Top %d : %s %dȸ\n", i, five[i - 1]->screenName, five[i - 1]->tweetc);
 		}
 	}
 	free(userQueue);
@@ -130,12 +186,12 @@ void printMinMaxUser(UserBST users, int totalTweet) {
 		}
 	}
 	printf("Average number of friends : %.3lf\n", (double)users.totalFriend / users.totalUesr);
-	printf("Minimum number of friends : %d %s\n", minF->friends, minF->ID);
-	printf("Maximum number of friends : %d %s\n", maxF->friends, maxF->ID);
+	printf("Minimum number of friends : %d %s\n", minF->friends, minF->screenName);
+	printf("Maximum number of friends : %d %s\n", maxF->friends, maxF->screenName);
 	printf("\n");
 	printf("Average tweets per user : %.3lf\n", (double)totalTweet / users.totalUesr);
-	printf("Minimum tweets per user : %d %s\n", minTC->tweetc, minTC->ID);
-	printf("Maximum tweets per user : %d %s\n", maxTC->tweetc, maxTC->ID);
+	printf("Minimum tweets per user : %d %s\n", minTC->tweetc, minTC->screenName);
+	printf("Maximum tweets per user : %d %s\n", maxTC->tweetc, maxTC->screenName);
 	free(userQueue);
 	return;
 }
@@ -147,11 +203,16 @@ void printFriends() {
 		return;
 	}
 	for (int i = 0; i < 5; i++) {
-		UserList* tmp = five[i]->first;
-		printf("%d. %s's friend(s)\n",i + 1, five[i]->ID);
-		while (tmp) {
-			printf("%s\n", tmp->ID);
-			tmp = tmp->next;
+		if (five[i]) {
+			UserList* tmp = five[i]->following;
+			printf("%d. %s's friend(s)\n", i + 1, five[i]->screenName);
+			while (tmp) {
+				printf("%s\n", tmp->user->screenName);
+				tmp = tmp->next;
+			}
+		}
+		else {
+			return;
 		}
 	}
 }
@@ -174,27 +235,29 @@ User* findUser(User* root, char* userId) {
 }
 
 //Tweet count
-void userTweet(User* root, char* id, char* word) {
+void userTweet(User* root, char* id, Word* word) {
 	int compare;
 	while (1) {
 		if (root == NULL) {
 			return;
 		}
 		if ((compare = strcmp(root->ID, id)) == 0) {
-			wordList* tmp = (wordList*)malloc(sizeof(wordList));
-			wordList* firstWord = root->wordFirst;
-			tmp->next = NULL;
-			tmp->word = word;
 			root->tweetc++;
-			if (firstWord == NULL) {
-				root->wordFirst = tmp;
-			}
-			else {
-				while (firstWord->next) {
-					firstWord = firstWord->next;
+			int inList = 0;
+			wordList* list = root->wordFirst;
+			while (list) {
+				if (list->word == word) {
+					inList = 1;
+					list->count++;
+					return;
 				}
-				firstWord->next = tmp;
+				list = list->next;
 			}
+			wordList* tmp = (wordList*)malloc(sizeof(wordList));
+			tmp->count = 1;
+			tmp->next = root->wordFirst;
+			tmp->word = word;
+			root->wordFirst = tmp;
 			return;
 		}
 		else if (compare < 0) {
@@ -209,33 +272,21 @@ void userTweet(User* root, char* id, char* word) {
 //Add friend
 void insertFriend(UserBST* userBST, char* ID, char* friendId) {
 	User* root = userBST->root;
-	while (1) {
-		if (strcmp(root->ID, ID) > 0) {
-			if (root->left == NULL) return;
-			root = root->left;
-		}
-		else if (strcmp(root->ID, ID) < 0) {
-			if (root->right == NULL) return;
-			root = root->right;
-		}
-		else {
-			UserList* friendList = root->first;
-			UserList* tmp = (UserList*)malloc(sizeof(UserList));
-			tmp->next = NULL; memcpy(tmp->ID, friendId, 30);
-			if (friendList == NULL) {
-				root->first = tmp;
-				userBST->totalFriend++;
-				root->friends++;
-				return;
-			}
-			while (friendList->next) {
-				friendList = friendList->next;
-			}
-			friendList->next = tmp;
-			userBST->totalFriend++;
-			root->friends++;
-			return;
-		}
+	User* tmp1 = findUser(root, ID);
+	User* tmp2 = findUser(root, friendId);
+	if (tmp1 != NULL && tmp2 != NULL) {
+		UserList* newlist = (UserList*)malloc(sizeof(UserList));
+		newlist->user = tmp2;
+		newlist->next = tmp1->following;
+		tmp1->following = newlist;
+		tmp1->friends++;
+	}
+	if (tmp1 != NULL && tmp2 != NULL) {
+		UserList* newlist = (UserList*)malloc(sizeof(UserList));
+		newlist->user = tmp1;
+		newlist->next = tmp2->follower;
+		tmp2->follower = newlist;
+		userBST->totalFriend++;
 	}
 }
 
@@ -307,10 +358,11 @@ void transPlant(UserBST* bst, User* target, User* newUser) {
 }
 
 //Insert Node
-void insertUser(UserBST* bst, char* ID) {
+void insertUser(UserBST* bst, char* ID, char* screenName) {
 	User* tmp = (User*)malloc(sizeof(User));
 	tmp->left = NULL; tmp->right = NULL; tmp->parent = NULL; memcpy(tmp->ID, ID, 30);
-	tmp->first = NULL; tmp->friends = 0; tmp->tweetc = 0;  tmp->color = 1; tmp->wordFirst = NULL;
+	tmp->following = NULL; tmp->friends = 0; tmp->tweetc = 0;  tmp->color = 1; tmp->wordFirst = NULL;
+	tmp->follower = NULL; memcpy(tmp->screenName, screenName, 100);
 	bst->totalUesr++;
 	if (bst->root == NULL) {
 		bst->root = tmp;
@@ -482,7 +534,7 @@ void UserdeleteFixUp(UserBST* bst, User* x, User* xParent) {
 					}
 					w->color = 1;
 					UserleftRotate(bst, w);
-					w = xParent->right;
+					w = xParent->left;
 				}
 				w->color = xParent->color;
 				xParent->color = 0;
@@ -569,11 +621,23 @@ void destroyUserTree(UserBST target) {
 
 //free User Data
 void freeUser(User* user) {
-	UserList* tmp = user->first;
+	UserList* tmp = user->following;
 	while (tmp) {
 		UserList* next = tmp->next;
 		free(tmp);
 		tmp = next;
+	}
+	tmp = user->follower;
+	while (tmp) {
+		UserList* next = tmp->next;
+		free(tmp);
+		tmp = next;
+	}
+	wordList* tmpWord = user->wordFirst;
+	while (tmpWord) {
+		wordList* next = tmpWord->next;
+		free(tmpWord);
+		tmpWord = next;
 	}
 	free(user);
 }

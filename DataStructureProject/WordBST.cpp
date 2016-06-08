@@ -1,5 +1,35 @@
 #include "WordBST.h"
 
+extern WordBST words;
+void delTweetWord(User* delUser) {
+	wordList* delWord = delUser->wordFirst;
+	while (delWord) {
+		delWord->word->userCount = delWord->word->userCount - delWord->count;
+		UserList* list = delWord->word->first;
+		if (list->user == delUser) {
+			delWord->word->first = list->next;
+			free(list);
+		}
+		else {
+			UserList* pre = list;
+			list = list->next;
+			while (list) {
+				if (list->user == delUser) {
+					pre->next = list->next;
+					free(list);
+					break;
+				}
+				pre = pre->next;
+				list = list->next;
+			}
+		}
+		if (delWord->word->userCount == 0) {
+			deleteWord(&words, delWord->word);
+		}
+		delWord = delWord->next;
+	}
+}
+
 //Most 5 tweeted Word
 void printTopFiveTweetWord(WordBST words) {
 	if (!words.root) {
@@ -46,8 +76,8 @@ void printTopFiveTweetWord(WordBST words) {
 		}
 	}
 	for (int i = 1; i <= 5; i++) {
-		if (five[i]) {
-			printf("Top %d : %s %d.\n", i, five[i - 1]->tweet, five[i - 1]->userCount);
+		if (five[i - 1]) {
+			printf("Top %d : %s %dtime(s).\n", i, five[i - 1]->tweet, five[i - 1]->userCount);
 		}
 	}
 	free(wordQueue);
@@ -61,9 +91,8 @@ void printTweetUser(Word* word) {
 		return;
 	}
 	UserList* tmp = word->first;
-	for (int i = 1; i <= word->userCount; i++) {
-		printf("%d. %s\n", i, tmp->ID);
-		tmp = tmp->next;
+	for (int i = 1; tmp; tmp = tmp->next, i++) {
+		printf("%d. %s\n", i, tmp->user->screenName);
 	}
 }
 
@@ -149,14 +178,15 @@ void transPlant(WordBST* bst, Word* target, Word* newWord) {
 }
 
 //Insert Node
-Word* insertWord(WordBST* bst, char* tweet, char* tweetID) {
+Word* insertWord(WordBST* bst, char* tweet, User* tweetUser) {
 	Word* tmp = (Word*)malloc(sizeof(Word));
 	tmp->userCount = 1; tmp->first = NULL; tmp->color = 1;
 	tmp->left = NULL; tmp->right = NULL; tmp->parent = NULL; memcpy(tmp->tweet, tweet, 300);
 	bst->totalTweet++;
 	if (bst->root == NULL) {
 		UserList *temp = (UserList*)malloc(sizeof(UserList));
-		memcpy(temp->ID, tweetID, 30);
+		temp->user = tweetUser;
+		temp->count = 1;
 		temp->next = NULL;
 		bst->root = tmp;
 		tmp->first = temp;
@@ -168,8 +198,9 @@ Word* insertWord(WordBST* bst, char* tweet, char* tweetID) {
 		if (strcmp(tweet, parent->tweet) < 0) {
 			if (parent->left == NULL) {
 				UserList *temp = (UserList*)malloc(sizeof(UserList));
-				memcpy(temp->ID, tweetID, 30);
+				temp->user = tweetUser;
 				temp->next = NULL;
+				temp->count = 1;
 				tmp->first = temp;
 				tmp->parent = parent;
 				parent->left = tmp;
@@ -180,8 +211,9 @@ Word* insertWord(WordBST* bst, char* tweet, char* tweetID) {
 		else if (strcmp(tweet, parent->tweet) > 0) {
 			if (parent->right == NULL) {
 				UserList *temp = (UserList*)malloc(sizeof(UserList));
-				memcpy(temp->ID, tweetID, 30);
+				temp->user = tweetUser;
 				temp->next = NULL;
+				temp->count = 1;
 				tmp->first = temp;
 				tmp->parent = parent;
 				parent->right = tmp;
@@ -191,15 +223,24 @@ Word* insertWord(WordBST* bst, char* tweet, char* tweetID) {
 		}
 		else {
 			parent->userCount++;
-			UserList *temp = (UserList*)malloc(sizeof(UserList));
-			memcpy(temp->ID, tweetID, 30);
-			temp->next = NULL;
-			UserList* t = parent->first;
-			while (t->next) {
-				t = t->next;
+			int inList = 0;
+			UserList* list = parent->first;
+			while (list) {
+				if (list->user == tweetUser) {
+					inList = 1;
+					list->count++;
+					break;
+				}
+				list = list->next;
 			}
-			t->next = temp;
-			free(tmp);
+			if (inList) {
+				return parent;
+			}
+			UserList *temp = (UserList*)malloc(sizeof(UserList));
+			temp->user = tweetUser;
+			temp->next = parent->first;
+			temp->count = 1;
+			parent->first = temp;
 			return parent;
 		}
 	}
@@ -376,7 +417,7 @@ void WorddeleteFixUp(WordBST* bst, Word* x, Word* xParent) {
 					}
 					w->color = 1;
 					WordleftRotate(bst, w);
-					w = xParent->right;
+					w = xParent->left;
 				}
 				w->color = xParent->color;
 				xParent->color = 0;

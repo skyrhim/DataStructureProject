@@ -6,6 +6,7 @@ UserBST users;
 WordBST words;
 
 void delWord(Word* word) {
+	cleanFiveUser();
 	if (!word) {
 		printf("Word is not in WordTree", word->tweet);
 		return;
@@ -13,14 +14,34 @@ void delWord(Word* word) {
 	words.totalTweet -= word->userCount;
 	UserList* user = word->first;
 	while (user) {
-		delTweet(findUser(users.root, user->ID), word->tweet);
+		delTweet(user->user, word, user->count);
 		user = user->next;
 	}
-	printf("Delete Word %s\n\n\n\n", word->tweet);
+	printf("Delete Word %s", word->tweet);
 	deleteWord(&words, word);
-	printWord(words.root);
+	//printWord(words.root);
 }
 
+void delUser(Word* word) {
+	if (word == NULL) {
+		printf("Words not contains word\n");
+		return;
+	}
+	UserList* tmp = word->first;
+	while (tmp) {
+		words.totalTweet -= tmp->user->tweetc;
+		users.totalFriend -= tmp->user->friends;
+		User* delUser = tmp->user;
+		UserList* next = tmp->next;
+		users.totalFriend -= delUser->friends;
+		delTweetWord(delUser);
+		delFollower(delUser);
+		delFollowing(delUser);
+		deleteUser(&users, delUser);
+		users.totalUesr--;
+		tmp = next;
+	}
+}
 
 bool isNum(char * chr) {
 	for (; *chr; chr++) {
@@ -33,7 +54,7 @@ bool isNum(char * chr) {
 
 int main() {
 	int command, inputReady = 0;
-	char tmp1[1000], tmp2[1000], userId[30], mention[300];
+	char tmp1[1000], tmp2[1000], userId[30], mention[300], screenName[100];
 	UserBSTInit(&users);
 	WordBSTInit(&words);
 	while (1) {
@@ -80,9 +101,10 @@ int main() {
 			while (fscanf(userIn, "%s", userId) != -1) {
 				fgets(tmp1, 1000, userIn);
 				fgets(tmp1, 1000, userIn);
+				fscanf(userIn, "%s", screenName);
 				fgets(tmp1, 1000, userIn);
 				fgets(tmp1, 1000, userIn);
-				insertUser(&users, userId);
+				insertUser(&users, userId, screenName);
 			}
 			while (fscanf(wordIn, "%s", userId) != -1) {
 				Word* tmp;
@@ -90,8 +112,8 @@ int main() {
 				fgets(tmp1, 1000, wordIn);
 				fscanf(wordIn, "%s", word);
 				fgets(tmp1, 1000, wordIn);
-				tmp = insertWord(&words, word, userId);
-				userTweet(users.root, userId, tmp->tweet);
+				tmp = insertWord(&words, word, findUser(users.root, userId));
+				userTweet(users.root, userId, tmp);
 			}
 			while (fscanf(friendIn, "%s", userId) != -1) {
 				fgets(tmp1, 1000, friendIn);
@@ -115,6 +137,8 @@ int main() {
 		}
 		case 1:
 			system("cls");
+			printf("total user : %d\n", users.totalUesr);
+			printf("total tweets : %d\n", words.totalTweet);
 			printMinMaxUser(users, words.totalTweet);
 			printf("\n\n\n\n\n");
 			break;
@@ -146,6 +170,13 @@ int main() {
 			printf("Enter a word : ");
 			scanf("%s", mention);
 			delWord(findWord(words.root, mention));
+			printf("\n\n\n\n\n\n");
+			break;
+		case 7:
+			system("cls");
+			printf("Enter a word : ");
+			scanf("%s", mention);
+			delUser(findWord(words.root, mention));
 			break;
 		case 99:
 			destroyUserTree(users);

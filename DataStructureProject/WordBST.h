@@ -1,31 +1,15 @@
 #pragma once
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
 #include "Project.h"
 #ifndef Max
 #define Max(a, b) (a) > (b) ? (a) : (b)
 #endif 
 
 
-struct Word {
-	char tweet[300];
-	UserList* first;
-	int userCount;
-	Word* parent;
-	Word* left;
-	Word* right;
-	int color;
-};
-struct WordBST {
-	int height;
-	int totalTweet;
-	Word* root;
-};
+
 void deleteWord(WordBST*, Word*);
 Word* findMinWord(Word*);
 Word* findMaxWord(Word*);
-Word* insertWord(WordBST*, char*, char*);
+Word* insertWord(WordBST*, char*, User*);
 void transPlant(WordBST*, Word*, Word*);
 int wordTreeHeight(Word*);
 void WordBSTInit(WordBST*);
@@ -41,3 +25,4 @@ void freeWord(Word*);
 void printTopFiveTweetWord(WordBST);
 void deleteWord(WordBST*, Word*);
 void WorddeleteFixUp(WordBST*, Word*, Word*);
+void delTweetWord(User*);
