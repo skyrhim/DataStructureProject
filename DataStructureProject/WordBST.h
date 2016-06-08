@@ -25,7 +25,7 @@ struct WordBST {
 void deleteWord(WordBST*, Word*);
 Word* findMinWord(Word*);
 Word* findMaxWord(Word*);
-void insertWord(WordBST*, char*, char*);
+Word* insertWord(WordBST*, char*, char*);
 void transPlant(WordBST*, Word*, Word*);
 int wordTreeHeight(Word*);
 void WordBSTInit(WordBST*);
@@ -39,3 +39,5 @@ Word* findWord(Word*, char*);
 void printTweetUser(Word*);
 void freeWord(Word*);
 void printTopFiveTweetWord(WordBST);
+void deleteWord(WordBST*, Word*);
+void WorddeleteFixUp(WordBST*, Word*, Word*);

@@ -1,8 +1,6 @@
 #include "WordBST.h"
 
-extern int count;
-
-//가장 많이 트윗된 5개의 단어 출력
+//Most 5 tweeted Word
 void printTopFiveTweetWord(WordBST words) {
 	if (!words.root) {
 		printf("0 Word\n");
@@ -49,17 +47,17 @@ void printTopFiveTweetWord(WordBST words) {
 	}
 	for (int i = 1; i <= 5; i++) {
 		if (five[i]) {
-			printf("Top %d : %s %d회\n", i, five[i - 1]->tweet, five[i - 1]->userCount);
+			printf("Top %d : %s %d.\n", i, five[i - 1]->tweet, five[i - 1]->userCount);
 		}
 	}
 	free(wordQueue);
 	return;
 }
 
-//word를 트윗한 User의 고유ID 출력
+//Print user ID who tweet Word
 void printTweetUser(Word* word) {
 	if (word == NULL) {
-		printf("해당단어를 트윗한 User가 없습니다.\n");
+		printf("User can't find.\n");
 		return;
 	}
 	UserList* tmp = word->first;
@@ -69,7 +67,7 @@ void printTweetUser(Word* word) {
 	}
 }
 
-//WordTree에서 Word찾기
+//Find Word in WordTree
 Word* findWord(Word* root, char* word) {
 	int compare;
 	while (root) {
@@ -86,7 +84,7 @@ Word* findWord(Word* root, char* word) {
 	return NULL;
 }
 
-//Tree의 단어들 출력
+//Print all Word in Word tree
 void printWord(Word* root) {
 	if (root->left != NULL) {
 		printWord(root->left);
@@ -97,20 +95,20 @@ void printWord(Word* root) {
 	}
 }
 
-//WordTree 초기화
+//Init WordTree
 void WordBSTInit(WordBST* words) {
 	words->height = 0;
 	words->root = NULL;
 	words->totalTweet = 0;
 }
 
-//WordTree의 높이
+//Height of WordTree
 int wordTreeHeight(Word* root) {
 	if (root == NULL) return 0;
 	return Max(wordTreeHeight(root->left) + 1, wordTreeHeight(root->right) + 1);
 }
 
-//minWord의 가장 왼쪽노드를 찾아줌
+//Find MinWord
 Word* findMinWord(Word* minWord) {
 	while (1) {
 		if (minWord->left) {
@@ -122,7 +120,7 @@ Word* findMinWord(Word* minWord) {
 	}
 }
 
-//maxWord의 가장 왼쪽노드를 찾아줌
+//Find MaxWord
 Word* findMaxWord(Word* maxWord) {
 	while (1) {
 		if (maxWord->right) {
@@ -134,7 +132,7 @@ Word* findMaxWord(Word* maxWord) {
 	}
 }
 
-//target노드 자리에 newWord를 붙여줌;
+//Transplant target to newWord
 void transPlant(WordBST* bst, Word* target, Word* newWord) {
 	if (target->parent == NULL) {
 		bst->root = newWord;
@@ -150,8 +148,8 @@ void transPlant(WordBST* bst, Word* target, Word* newWord) {
 	}
 }
 
-//노드 삽입
-void insertWord(WordBST* bst, char* tweet, char* tweetID) {
+//Insert Node
+Word* insertWord(WordBST* bst, char* tweet, char* tweetID) {
 	Word* tmp = (Word*)malloc(sizeof(Word));
 	tmp->userCount = 1; tmp->first = NULL; tmp->color = 1;
 	tmp->left = NULL; tmp->right = NULL; tmp->parent = NULL; memcpy(tmp->tweet, tweet, 300);
@@ -163,7 +161,7 @@ void insertWord(WordBST* bst, char* tweet, char* tweetID) {
 		bst->root = tmp;
 		tmp->first = temp;
 		bst->root->color = 0;
-		return;
+		return tmp;
 	}
 	Word* parent = bst->root;
 	while (1) {
@@ -202,36 +200,50 @@ void insertWord(WordBST* bst, char* tweet, char* tweetID) {
 			}
 			t->next = temp;
 			free(tmp);
-			return;
+			return parent;
 		}
 	}
 	WordinsertFixUp(bst, tmp);
+	return tmp;
 }
 
-//노드 삭제
-void deleteWord(WordBST* bst, Word* deleteWord) {
-	Word* parent = deleteWord->parent;
-	//자식이 없을 경우
-	if (deleteWord->left == NULL) {
-		transPlant(bst, deleteWord, deleteWord->right);
+//Delete Node
+void deleteWord(WordBST* bst, Word* z) {
+	Word* y = z;
+	Word *x, *xParent;
+	int yOriginalColor = y->color;
+	if (z->left == NULL) {
+		x = z->right;
+		xParent = z->parent;
+		transPlant(bst, z, z->right);
 	}
-	//오른쪽 자식이 없을 경우
-	else if (deleteWord->right == NULL) {
-		transPlant(bst, deleteWord, deleteWord->left);
+	else if (z->right == NULL) {
+		x = z->left;
+		xParent = z->parent;
+		transPlant(bst, z, z->left);
 	}
-	//자식이 둘 다 있는 경우
 	else {
-		Word* successor = findMinWord(deleteWord->right);
-		if (successor != deleteWord->right) {
-			transPlant(bst, successor, successor->right);
-			successor->right = deleteWord->right;
-			successor->right->parent = successor;
+		y = findMinWord(z->right);
+		yOriginalColor = y->color;
+		x = y->right;
+		xParent = y->parent;
+		if (y->parent == z) {
+			xParent = y;
 		}
-		transPlant(bst, deleteWord, successor);
-		successor->left = deleteWord->left;
-		successor->left->parent = successor;
+		else {
+			transPlant(bst, y, y->right);
+			y->right = z->right;
+			y->right->parent = y;
+		}
+		transPlant(bst, z, y);
+		y->left = z->left;
+		y->left->parent = y;
+		y->color = z->color;
 	}
-	freeWord(deleteWord);
+	if (yOriginalColor == 0) {
+		WorddeleteFixUp(bst, x, xParent);
+	}
+	freeWord(z);
 }
 
 //WordTree delete
@@ -260,7 +272,7 @@ void destroyWordTree(WordBST target) {
 	return;
 }
 
-//RB Tree Fix
+//RB Tree Insert Fix
 void WordinsertFixUp(WordBST* bst, Word* fix) {
 	while (fix->parent && fix->parent->color) {
 		if (fix->parent == fix->parent->parent->left) {
@@ -309,6 +321,78 @@ void WordinsertFixUp(WordBST* bst, Word* fix) {
 	bst->root->color = 0;
 }
 
+//RB Tree Delete Fix
+void WorddeleteFixUp(WordBST* bst, Word* x, Word* xParent) {
+	Word* w;
+	while (x != bst->root && (x == NULL || x->color == 0)) {
+		if (x == xParent->left) {
+			w = xParent->right;
+			if (w->color == 1) {
+				w->color = 0;
+				xParent->color = 1;
+				WordleftRotate(bst, xParent);
+				w = xParent->right;
+			}
+			if ((w->left == NULL || w->left->color == 0) && (w->right == NULL || w->right->color == 0)) {
+				w->color = 1;
+				x = xParent;
+				xParent = x->parent;
+			}
+			else {
+				if ((w->right == NULL || w->right->color == 0)) {
+					if (w->left) {
+						w->left->color = 0;
+					}
+					w->color = 1;
+					WordrightRotate(bst, w);
+					w = xParent->right;
+				}
+				w->color = xParent->color;
+				xParent->color = 0;
+				if (w->right) {
+					w->right->color = 0;
+				}
+				WordleftRotate(bst, xParent);
+				x = bst->root;
+			}
+		}
+		else {
+			w = xParent->left;
+			if (w->color == 1) {
+				w->color = 0;
+				xParent->color = 1;
+				WordrightRotate(bst, xParent);
+				w = xParent->left;
+			}
+			if ((w->right == NULL || w->right->color == 0) && (w->left == NULL || w->left->color == 0)) {
+				w->color = 1;
+				x = xParent;
+				xParent = x->parent;
+			}
+			else {
+				if ((w->left == NULL || w->left->color == 0)) {
+					if (w->right) {
+						w->right->color = 0;
+					}
+					w->color = 1;
+					WordleftRotate(bst, w);
+					w = xParent->right;
+				}
+				w->color = xParent->color;
+				xParent->color = 0;
+				if (w->left) {
+					w->left->color = 0;
+				}
+				WordrightRotate(bst, xParent);
+				x = bst->root;
+			}
+		}
+	}
+	if (x) {
+		x->color = 0;
+	}
+}
+
 //RB Tree Left Rotate
 void WordleftRotate(WordBST* bst, Word* fix) {
 	Word* tmp = fix->right;
@@ -351,6 +435,7 @@ void WordrightRotate(WordBST* bst, Word* fix) {
 	fix->parent = tmp;
 }
 
+//Word free
 void freeWord(Word* word) {
 	UserList* tmp = word->first;
 	while (tmp) {

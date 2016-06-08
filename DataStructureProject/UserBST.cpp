@@ -1,13 +1,43 @@
 #include "UserBST.h"
 
-extern int count;
-//트윗을 가장 많이한 5명의 유저 출력
+User* five[5];
+void cleanFiveUser() {
+	for (int i = 0; i < 5; i++) {
+		five[i] = 0;
+	}
+}
+
+void delTweet(User* user, char* tweet) {
+	if (user == NULL) {
+		return;
+	}
+	user->tweetc--;
+	wordList* word = user->wordFirst;
+	wordList *pre;
+	if (word->word == tweet) {
+		user->wordFirst = word->next;
+		free(word);
+		return;
+	}
+	pre = word;
+	word = word->next;
+	while (word) {
+		if (word->word == tweet) {
+			pre->next = word->next;
+			free(word);
+			return;
+		}
+		word = word->next;
+	}
+}
+
+//Most 5 tweeted User
 void printTopFiveTweetUser(UserBST users) {
 	if (!users.root) {
 		printf("0 User\n");
 		return;
 	}
-	User* five[5] = { NULL };
+	cleanFiveUser();
 	User** userQueue = (User**)malloc(sizeof(User*) * users.totalUesr);
 	int front = 0, back = 0;
 	five[0] = userQueue[back++] = users.root;
@@ -47,14 +77,14 @@ void printTopFiveTweetUser(UserBST users) {
 		}
 	}
 	for (int i = 1; i <= 5; i++) {
-		if (five[i]) {
+		if (five[i - 1]) {
 			printf("Top %d : %s %d회\n", i, five[i - 1]->ID, five[i - 1]->tweetc);
 		}
 	}
 	free(userQueue);
 }
 
-//모든 User중 트윗수, 친구수가 가장 많은(적은) User 출력
+//Print min and max User(number of tweet, friend)
 void printMinMaxUser(UserBST users, int totalTweet) {
 	if (!users.root) {
 		printf("0 User\n");
@@ -110,22 +140,23 @@ void printMinMaxUser(UserBST users, int totalTweet) {
 	return;
 }
 
-//User의 친구 출력
-void printFriends(User* user) {
-	if (user == NULL) {
-		printf("해당 유저가 존재하지 않습니다.\n");
+//Print friend of User
+void printFriends() {
+	if (five[0] == NULL) {
+		printf("0 User or plz run command 3\n");
 		return;
 	}
-	UserList* tmp = user->first;
-	for (int i = 1; i <= user->friends; i++) {
-		printf("%d. %s\n", i, tmp->ID);
-	}
-	if (user->friends == 0) {
-		printf("해당 유저의 친구는 0명입니다.");
+	for (int i = 0; i < 5; i++) {
+		UserList* tmp = five[i]->first;
+		printf("%d. %s's friend(s)\n",i + 1, five[i]->ID);
+		while (tmp) {
+			printf("%s\n", tmp->ID);
+			tmp = tmp->next;
+		}
 	}
 }
 
-//UserID로 User찾기
+//Find User by ID
 User* findUser(User* root, char* userId) {
 	int compare;
 	while (root) {
@@ -142,15 +173,28 @@ User* findUser(User* root, char* userId) {
 	return NULL;
 }
 
-//User가 트윗을 했을 때 그 정보를 기록
-void userTweet(User* root, char* id) {
+//Tweet count
+void userTweet(User* root, char* id, char* word) {
 	int compare;
 	while (1) {
 		if (root == NULL) {
 			return;
 		}
 		if ((compare = strcmp(root->ID, id)) == 0) {
+			wordList* tmp = (wordList*)malloc(sizeof(wordList));
+			wordList* firstWord = root->wordFirst;
+			tmp->next = NULL;
+			tmp->word = word;
 			root->tweetc++;
+			if (firstWord == NULL) {
+				root->wordFirst = tmp;
+			}
+			else {
+				while (firstWord->next) {
+					firstWord = firstWord->next;
+				}
+				firstWord->next = tmp;
+			}
 			return;
 		}
 		else if (compare < 0) {
@@ -162,7 +206,7 @@ void userTweet(User* root, char* id) {
 	}
 }
 
-//Tree에서 ID를 찾아 그곳에 friendId 추가
+//Add friend
 void insertFriend(UserBST* userBST, char* ID, char* friendId) {
 	User* root = userBST->root;
 	while (1) {
@@ -195,7 +239,7 @@ void insertFriend(UserBST* userBST, char* ID, char* friendId) {
 	}
 }
 
-//User삽입 테스트용
+//print all User
 void print(User* root) {
 	if (root->left != NULL) {
 		print(root->left);
@@ -206,7 +250,7 @@ void print(User* root) {
 	}
 }
 
-//UserBST 초기화
+//Init UserTree
 void UserBSTInit(UserBST* users) {
 	users->height = 0;
 	users->root = NULL;
@@ -214,15 +258,15 @@ void UserBSTInit(UserBST* users) {
 	users->totalUesr = 0;
 }
 
-//UserTree의 높이 계산
+//Height of UserTree
 int userTreeHeight(User* root) {
 	if (root == NULL) return 0;
 	return Max(userTreeHeight(root->left) + 1, userTreeHeight(root->right));
 }
 
-//Tree 구성
+//Construct Tree
 
-//minUser의 가장 왼쪽 노드를 찾아줌
+//Find min User
 User* findMinUser(User* minUser) {
 	while (1) {
 		if (minUser->left) {
@@ -234,7 +278,7 @@ User* findMinUser(User* minUser) {
 	}
 }
 
-//maxUser의 가장 오른쪽 노드를 찾아줌
+//Find max User
 User* findMaxUser(User* maxUser) {
 	while (1) {
 		if (maxUser->right) {
@@ -246,7 +290,7 @@ User* findMaxUser(User* maxUser) {
 	}
 }
 
-//target노드 자리에 newUser를 붙여줌;
+//Transplant target to newUser
 void transPlant(UserBST* bst, User* target, User* newUser) {
 	if (target->parent == NULL) {
 		bst->root = newUser;
@@ -262,11 +306,11 @@ void transPlant(UserBST* bst, User* target, User* newUser) {
 	}
 }
 
-//노드 삽입;
+//Insert Node
 void insertUser(UserBST* bst, char* ID) {
 	User* tmp = (User*)malloc(sizeof(User));
 	tmp->left = NULL; tmp->right = NULL; tmp->parent = NULL; memcpy(tmp->ID, ID, 30);
-	tmp->first = NULL; tmp->friends = 0; tmp->tweetc = 0;  tmp->color = 1;
+	tmp->first = NULL; tmp->friends = 0; tmp->tweetc = 0;  tmp->color = 1; tmp->wordFirst = NULL;
 	bst->totalUesr++;
 	if (bst->root == NULL) {
 		bst->root = tmp;
@@ -295,33 +339,46 @@ void insertUser(UserBST* bst, char* ID) {
 	UserinsertFixUp(bst, tmp);
 }
 
-//노드 삭제
-void deleteUser(UserBST* bst, User* deleteUser) {
-	User* parent = deleteUser->parent;
-	//자식이 없을 경우
-	if (deleteUser->left == NULL) {
-		transPlant(bst, deleteUser, deleteUser->right);
+//Delete Node
+void deleteUser(UserBST* bst, User* z) {
+	User* y = z;
+	User *x, *xParent;
+	int yOriginalColor = y->color;
+	if (z->left == NULL) {
+		x = z->right;
+		xParent = z->parent;
+		transPlant(bst, z, z->right);
 	}
-	//오른쪽 자식이 없을 경우
-	else if (deleteUser->right == NULL) {
-		transPlant(bst, deleteUser, deleteUser->left);
+	else if (z->right == NULL) {
+		x = z->left;
+		xParent = z->parent;
+		transPlant(bst, z, z->left);
 	}
-	//자식이 둘 다 있는 경우
 	else {
-		User* successor = findMinUser(deleteUser->right);
-		if (successor != deleteUser->right) {
-			transPlant(bst, successor, successor->right);
-			successor->right = deleteUser->right;
-			successor->right->parent = successor;
+		y = findMinUser(z->right);
+		yOriginalColor = y->color;
+		x = y->right;
+		xParent = y->parent;
+		if (y->parent == z) {
+			xParent = y;
 		}
-		transPlant(bst, deleteUser, successor);
-		successor->left = deleteUser->left;
-		successor->left->parent = successor;
+		else {
+			transPlant(bst, y, y->right);
+			y->right = z->right;
+			y->right->parent = y;
+		}
+		transPlant(bst, z, y);
+		y->left = z->left;
+		y->left->parent = y;
+		y->color = z->color;
 	}
-	freeUser(deleteUser);
+	if (yOriginalColor == 0) {
+		UserdeleteFixUp(bst, x, xParent);
+	}
+	freeUser(z);
 }
 
-//RB트리 insertFix
+//RB Tree insertFix
 void UserinsertFixUp(UserBST* bst, User* fix) {
 	while (fix->parent && fix->parent->color) {
 		if (fix->parent == fix->parent->parent->left) {
@@ -370,7 +427,79 @@ void UserinsertFixUp(UserBST* bst, User* fix) {
 	bst->root->color = 0;
 }
 
-//RB트리 Tree Left Rotate
+//RB Tree deleteFix
+void UserdeleteFixUp(UserBST* bst, User* x, User* xParent) {
+	User* w;
+	while (x != bst->root && (x == NULL || x->color == 0)) {
+		if (x == xParent->left) {
+			w = xParent->right;
+			if (w->color == 1) {
+				w->color = 0;
+				xParent->color = 1;
+				UserleftRotate(bst, xParent);
+				w = xParent->right;
+			}
+			if ((w->left == NULL || w->left->color == 0) && (w->right == NULL || w->right->color == 0)) {
+				w->color = 1;
+				x = xParent;
+				xParent = x->parent;
+			}
+			else {
+				if ((w->right == NULL || w->right->color == 0)) {
+					if (w->left) {
+						w->left->color = 0;
+					}
+					w->color = 1;
+					UserrightRotate(bst, w);
+					w = xParent->right;
+				}
+				w->color = xParent->color;
+				xParent->color = 0;
+				if (w->right) {
+					w->right->color = 0;
+				}
+				UserleftRotate(bst, xParent);
+				x = bst->root;
+			}
+		}
+		else {
+			w = xParent->left;
+			if (w->color == 1) {
+				w->color = 0;
+				xParent->color = 1;
+				UserrightRotate(bst, xParent);
+				w = xParent->left;
+			}
+			if ((w->right == NULL || w->right->color == 0) && (w->left == NULL || w->left->color == 0)) {
+				w->color = 1;
+				x = xParent;
+				xParent = x->parent;
+			}
+			else {
+				if ((w->left == NULL || w->left->color == 0)) {
+					if (w->right) {
+						w->right->color = 0;
+					}
+					w->color = 1;
+					UserleftRotate(bst, w);
+					w = xParent->right;
+				}
+				w->color = xParent->color;
+				xParent->color = 0;
+				if (w->left) {
+					w->left->color = 0;
+				}
+				UserrightRotate(bst, xParent);
+				x = bst->root;
+			}
+		}
+	}
+	if (x) {
+		x->color = 0;
+	}
+}
+
+//RB Tree Tree Left Rotate
 void UserleftRotate(UserBST* bst, User* fix) {
 	User* tmp = fix->right;
 	fix->right = tmp->left;
@@ -391,7 +520,7 @@ void UserleftRotate(UserBST* bst, User* fix) {
 	fix->parent = tmp;
 }
 
-//RB트리 Tree Right Rotate
+//RB Tree Tree Right Rotate
 void UserrightRotate(UserBST* bst, User* fix) {
 	User* tmp = fix->left;
 	fix->left = tmp->right;

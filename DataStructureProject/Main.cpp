@@ -1,6 +1,27 @@
 #include "UserBST.h"
 #include "WordBST.h"
 
+int count;
+UserBST users;
+WordBST words;
+
+void delWord(Word* word) {
+	if (!word) {
+		printf("Word is not in WordTree", word->tweet);
+		return;
+	}
+	words.totalTweet -= word->userCount;
+	UserList* user = word->first;
+	while (user) {
+		delTweet(findUser(users.root, user->ID), word->tweet);
+		user = user->next;
+	}
+	printf("Delete Word %s\n\n\n\n", word->tweet);
+	deleteWord(&words, word);
+	printWord(words.root);
+}
+
+
 bool isNum(char * chr) {
 	for (; *chr; chr++) {
 		if (*chr < '0' || *chr > '9') {
@@ -10,12 +31,8 @@ bool isNum(char * chr) {
 	return true;
 }
 
-int count;
-
 int main() {
 	int command, inputReady = 0;
-	UserBST users;
-	WordBST words;
 	char tmp1[1000], tmp2[1000], userId[30], mention[300];
 	UserBSTInit(&users);
 	WordBSTInit(&words);
@@ -34,7 +51,7 @@ int main() {
 		printf("Select Menu : ");
 		scanf("%s", &tmp2);
 		if (!isNum(tmp2)) {
-			printf("숫자를 입력해주세요.\n");
+			printf("It is not number. Try again.\n");
 			continue;
 		}
 		else {
@@ -42,12 +59,12 @@ int main() {
 		}
 		if (inputReady == 0 && command != 0 && command != 99) {
 			system("cls");
-			printf("입력을 먼저 받아주세요.\n\n\n\n\n\n");
+			printf("Enter data before other command.\n\n\n\n\n\n");
 			continue;
 		}
 		if (inputReady == 1 && command == 0) {
 			system("cls");
-			printf("이미 입력을 받았습니다. 다른 명령어를 선택해주세요.\n\n\n\n\n\n");
+			printf("Input already. Please run other command\n\n\n\n\n\n");
 			continue;
 		}
 		switch (command) {
@@ -68,12 +85,13 @@ int main() {
 				insertUser(&users, userId);
 			}
 			while (fscanf(wordIn, "%s", userId) != -1) {
+				Word* tmp;
 				fgets(tmp1, 1000, wordIn);
 				fgets(tmp1, 1000, wordIn);
 				fscanf(wordIn, "%s", word);
 				fgets(tmp1, 1000, wordIn);
-				insertWord(&words, word, userId);
-				userTweet(users.root, userId);
+				tmp = insertWord(&words, word, userId);
+				userTweet(users.root, userId, tmp->tweet);
 			}
 			while (fscanf(friendIn, "%s", userId) != -1) {
 				fgets(tmp1, 1000, friendIn);
@@ -112,19 +130,22 @@ int main() {
 			break;
 		case 4:
 			system("cls");
-			printf("한 단어를 입력해주세요 : ");
+			printf("Enter a word : ");
 			scanf("%s", mention);
-			printf("%s을 tweet한 User.\n", mention);
+			printf("%s is tweeted by\n", mention);
 			printTweetUser(findWord(words.root, mention));
 			printf("\n\n\n\n\n");
 			break;
 		case 5:
 			system("cls");
-			printf("User의 ID를 입력해주세요 : ");
-			scanf("%s", userId);
-			printf("%s의 친구는 다음과 같습니다.\n", userId);
-			printFriends(findUser(users.root, userId));
+			printFriends();
 			printf("\n\n\n\n\n");
+			break;
+		case 6:
+			system("cls");
+			printf("Enter a word : ");
+			scanf("%s", mention);
+			delWord(findWord(words.root, mention));
 			break;
 		case 99:
 			destroyUserTree(users);
@@ -132,7 +153,7 @@ int main() {
 			return 0;
 		default:
 			system("cls");
-			printf("없는 명령어입니다. 다른 명령을 입력해주세요\n");
+			printf("Command not exist. Try again.\n");
 			printf("\n\n\n\n\n\n\n");
 			break;
 		}
