@@ -4,13 +4,14 @@
 int count;
 UserBST users;
 WordBST words;
-
-void delWord(Word* word) {
-	cleanFiveUser();
+//delete word
+void delWord(char* tweet) {
+	Word* word = findWord(words.root, tweet);
 	if (!word) {
-		printf("Word is not in WordTree", word->tweet);
+		printf("%s is not in WordTree", tweet);
 		return;
 	}
+	cleanFiveUser();
 	words.totalTweet -= word->userCount;
 	UserList* user = word->first;
 	while (user) {
@@ -22,11 +23,14 @@ void delWord(Word* word) {
 	//printWord(words.root);
 }
 
-void delUser(Word* word) {
+//delete User who tweet word
+void delUser(char* tweet) {
+	Word* word = findWord(words.root, tweet);
 	if (word == NULL) {
-		printf("Words not contains word\n");
+		printf("%s is not in WordTree\n", tweet);
 		return;
 	}
+	cleanFiveUser();
 	UserList* tmp = word->first;
 	while (tmp) {
 		words.totalTweet -= tmp->user->tweetc;
@@ -41,6 +45,7 @@ void delUser(Word* word) {
 		users.totalUesr--;
 		tmp = next;
 	}
+	printf("Delete all User who tweet %s", tweet);
 }
 
 bool isNum(char * chr) {
@@ -96,7 +101,7 @@ int main() {
 			FILE* friendIn = fopen("friend.txt", "r");
 			FILE* wordIn = fopen("word.txt", "r");
 			char userId[30];
-			char word[200];
+			char word[300];
 			char friendId[30];
 			while (fscanf(userIn, "%s", userId) != -1) {
 				fgets(tmp1, 1000, userIn);
@@ -169,14 +174,15 @@ int main() {
 			system("cls");
 			printf("Enter a word : ");
 			scanf("%s", mention);
-			delWord(findWord(words.root, mention));
+			delWord(mention);
 			printf("\n\n\n\n\n\n");
 			break;
 		case 7:
 			system("cls");
 			printf("Enter a word : ");
 			scanf("%s", mention);
-			delUser(findWord(words.root, mention));
+			delUser(mention);
+			printf("\n\n\n\n\n\n");
 			break;
 		case 99:
 			destroyUserTree(users);

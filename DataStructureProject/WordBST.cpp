@@ -1,6 +1,7 @@
 #include "WordBST.h"
 
 extern WordBST words;
+//delete Word tweeted by delUser
 void delTweetWord(User* delUser) {
 	wordList* delWord = delUser->wordFirst;
 	while (delWord) {
@@ -33,7 +34,7 @@ void delTweetWord(User* delUser) {
 //Most 5 tweeted Word
 void printTopFiveTweetWord(WordBST words) {
 	if (!words.root) {
-		printf("0 Word\n");
+		printf("Zero Word in WordTree\n");
 		return;
 	}
 	Word* five[5] = { NULL };

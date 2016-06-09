@@ -2,6 +2,8 @@
 
 extern UserBST users;
 User* five[5];
+
+//delete following list of delUser's follower
 void delFollower(User* delUser) {
 	UserList* follower = delUser->follower;
 	while (follower) {
@@ -31,6 +33,7 @@ void delFollower(User* delUser) {
 	}
 }
 
+//delete follower list of User who delUser follow
 void delFollowing(User* delUser) {
 	UserList* following = delUser->following;
 	while (following) {
@@ -56,12 +59,14 @@ void delFollowing(User* delUser) {
 	}
 }
 
+//array five init
 void cleanFiveUser() {
 	for (int i = 0; i < 5; i++) {
 		five[i] = 0;
 	}
 }
 
+//delete user's word list
 void delTweet(User* user, Word* tweet, int count) {
 	if (user == NULL) {
 		return;
@@ -90,7 +95,7 @@ void delTweet(User* user, Word* tweet, int count) {
 //Most 5 tweeted User
 void printTopFiveTweetUser(UserBST users) {
 	if (!users.root) {
-		printf("0 User\n");
+		printf("Zero User in UserTree\n");
 		return;
 	}
 	cleanFiveUser();
@@ -134,7 +139,7 @@ void printTopFiveTweetUser(UserBST users) {
 	}
 	for (int i = 1; i <= 5; i++) {
 		if (five[i - 1]) {
-			printf("Top %d : %s %dȸ\n", i, five[i - 1]->screenName, five[i - 1]->tweetc);
+			printf("Top %d : %s %d time(s)\n", i, five[i - 1]->screenName, five[i - 1]->tweetc);
 		}
 	}
 	free(userQueue);
@@ -199,7 +204,7 @@ void printMinMaxUser(UserBST users, int totalTweet) {
 //Print friend of User
 void printFriends() {
 	if (five[0] == NULL) {
-		printf("0 User or plz run command 3\n");
+		printf("0 User in UserTree or run command 3\n");
 		return;
 	}
 	for (int i = 0; i < 5; i++) {
