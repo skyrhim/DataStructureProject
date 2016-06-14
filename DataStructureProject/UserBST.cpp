@@ -99,7 +99,7 @@ void printTopFiveTweetUser(UserBST users) {
 		return;
 	}
 	cleanFiveUser();
-	User** userQueue = (User**)(sizeof(User*) * users.totalUesr);
+	User** userQueue = (User**)malloc(sizeof(User*) * users.totalUesr);
 	int front = 0, back = 0;
 	five[0] = userQueue[back++] = users.root;
 	while (front < back) {
@@ -432,7 +432,7 @@ void deleteUser(UserBST* bst, User* z) {
 	if (yOriginalColor == 0) {
 		UserdeleteFixUp(bst, x, xParent);
 	}
-	//freeUser(z);
+	freeUser(z);
 }
 
 //RB Tree insertFix
