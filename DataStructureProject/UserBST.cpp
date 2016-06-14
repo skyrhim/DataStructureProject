@@ -204,7 +204,7 @@ void printMinMaxUser(UserBST users, int totalTweet) {
 //Print friend of User
 void printFriends() {
 	if (five[0] == NULL) {
-		printf("0 User in UserTree or run command 3\n");
+		printf("0 User in UserTree or did not run command 3\n");
 		return;
 	}
 	for (int i = 0; i < 5; i++) {

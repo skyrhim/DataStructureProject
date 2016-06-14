@@ -26,3 +26,4 @@ void printTopFiveTweetWord(WordBST);
 void deleteWord(WordBST*, Word*);
 void WorddeleteFixUp(WordBST*, Word*, Word*);
 void delTweetWord(User*);
+void printTweetUserFriends(Word*);

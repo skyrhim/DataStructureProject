@@ -1,6 +1,23 @@
 #include "WordBST.h"
 
 extern WordBST words;
+//Print user's friends who tweet word
+void printTweetUserFriends(Word* word) {
+	if (word == NULL) {
+		printf("Word can't find or did not run command 4\n");
+		return;
+	}
+	UserList* tmp = word->first;
+	for (int i = 1; tmp; tmp = tmp->next, i++) {
+		printf("%d. %s's friend(s)\n", i, tmp->user->screenName);
+		UserList* temp = tmp->user->following;
+		while (temp) {
+			printf("%s\n", temp->user->screenName);
+			temp = temp->next;
+		}
+	}
+}
+
 //delete Word tweeted by delUser
 void delTweetWord(User* delUser) {
 	wordList* delWord = delUser->wordFirst;
@@ -88,7 +105,7 @@ void printTopFiveTweetWord(WordBST words) {
 //Print user ID who tweet Word
 void printTweetUser(Word* word) {
 	if (word == NULL) {
-		printf("User can't find.\n");
+		printf("Word can't find.\n");
 		return;
 	}
 	UserList* tmp = word->first;

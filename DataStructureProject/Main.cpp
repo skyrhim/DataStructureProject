@@ -4,6 +4,41 @@
 int count;
 UserBST users;
 WordBST words;
+
+bool isNum(char * chr) {
+	for (; *chr; chr++) {
+		if (*chr < '0' || *chr > '9') {
+			return false;
+		}
+	}
+	return true;
+}
+
+void selectCom(Word* selectFive) {
+	char tmp[1000];
+	int command;
+	printf("Select Number 3 or 4\n");
+	printf("3. Top 5 most tweeted users\n");
+	printf("4. Find users who tweeted a word\n");
+	scanf("%s", tmp);
+	if (isNum(tmp)) {
+		command = atoi(tmp);
+	}
+	else {
+		printf("It is not number!\n");
+		return;
+	}
+	if (command == 3) {
+		printFriends();
+	}
+	else if(command == 4){
+		printTweetUserFriends(selectFive);
+	}
+	else {
+		printf("Command not exist\n");
+	}
+}
+
 //delete word
 void delWord(char* tweet) {
 	Word* word = findWord(words.root, tweet);
@@ -37,7 +72,6 @@ void delUser(char* tweet) {
 		users.totalFriend -= tmp->user->friends;
 		User* delUser = tmp->user;
 		UserList* next = tmp->next;
-		//users.totalFriend -= delUser->friends;
 		delTweetWord(delUser);
 		delFollower(delUser);
 		delFollowing(delUser);
@@ -48,18 +82,11 @@ void delUser(char* tweet) {
 	printf("Delete all User who tweet %s", tweet);
 }
 
-bool isNum(char * chr) {
-	for (; *chr; chr++) {
-		if (*chr < '0' || *chr > '9') {
-			return false;
-		}
-	}
-	return true;
-}
 
 int main() {
 	int command, inputReady = 0;
 	char tmp1[1000], tmp2[1000], userId[30], mention[300], screenName[100];
+	Word* selectFive = NULL;
 	UserBSTInit(&users);
 	WordBSTInit(&words);
 	while (1) {
@@ -162,12 +189,13 @@ int main() {
 			printf("Enter a word : ");
 			scanf("%s", mention);
 			printf("%s is tweeted by\n", mention);
-			printTweetUser(findWord(words.root, mention));
+		 	selectFive = findWord(words.root, mention);
+			printTweetUser(selectFive);
 			printf("\n\n\n\n\n");
 			break;
 		case 5:
 			system("cls");
-			printFriends();
+			selectCom(selectFive);
 			printf("\n\n\n\n\n");
 			break;
 		case 6:
@@ -176,6 +204,7 @@ int main() {
 			scanf("%s", mention);
 			delWord(mention);
 			printf("\n\n\n\n\n\n");
+			selectFive = NULL;
 			break;
 		case 7:
 			system("cls");
@@ -183,6 +212,7 @@ int main() {
 			scanf("%s", mention);
 			delUser(mention);
 			printf("\n\n\n\n\n\n");
+			selectFive = NULL;
 			break;
 		case 99:
 			destroyUserTree(users);
