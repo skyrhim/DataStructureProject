@@ -223,6 +223,7 @@ Word* insertWord(WordBST* bst, char* tweet, User* tweetUser) {
 			parent = parent->right;
 		}
 		else {
+			free(tmp);
 			parent->userCount++;
 			int inList = 0;
 			UserList* list = parent->first;
@@ -290,8 +291,6 @@ void deleteWord(WordBST* bst, Word* z) {
 
 //WordTree delete
 void destroyWordTree(WordBST target) {
-	WordBST bst;
-	WordBSTInit(&bst);
 	Word** WordQueue = (Word**)malloc(sizeof(Word*) * (target.totalTweet + 1));
 	int front = 0, back = 0;
 	WordQueue[back++] = target.root;

@@ -37,7 +37,7 @@ void delUser(char* tweet) {
 		users.totalFriend -= tmp->user->friends;
 		User* delUser = tmp->user;
 		UserList* next = tmp->next;
-		users.totalFriend -= delUser->friends;
+		//users.totalFriend -= delUser->friends;
 		delTweetWord(delUser);
 		delFollower(delUser);
 		delFollowing(delUser);
@@ -135,9 +135,9 @@ int main() {
 			//print(users.root);
 			//printWord(words.root);
 			printf("\n\n\n\n\n");
-			free(userIn);
-			free(wordIn);
-			free(friendIn);
+			fclose(userIn);
+			fclose(wordIn);
+			fclose(friendIn);
 			break;
 		}
 		case 1:
@@ -187,6 +187,8 @@ int main() {
 		case 99:
 			destroyUserTree(users);
 			destroyWordTree(words);
+			users.root = NULL;
+			words.root = NULL;
 			return 0;
 		default:
 			system("cls");
